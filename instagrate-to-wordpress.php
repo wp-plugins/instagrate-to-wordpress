@@ -103,10 +103,10 @@ if (!class_exists("instagrate_to_wordpress")) {
 			
 			
 			//update manual last id
-			$manuallstid= '';
-			$manuallstid= get_option('itw_manuallstid');
+			//$manuallstid= '';
+			//$manuallstid= get_option('itw_manuallstid');
 			
-			if ($manuallstid == '')
+			if (!get_option('itw_manuallstid'))
 			{
 				update_option('itw_manuallstid', $lastid);
 			}
@@ -119,6 +119,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			if ($configured != 'Installed') {
 			
 				
+				//update_option('itw_manuallstid', $lastid);
 				
 							
 				//Set plugin link to true
@@ -210,8 +211,22 @@ if (!class_exists("instagrate_to_wordpress")) {
 		}
 		
 		public static function get_last_id($data) {
-		//echo $data[0]["id"];
-			//return $data[0]["id"];
+			
+			$images = array();
+			
+			foreach($data->data as $item):
+										
+						$images[] = array(
+							"id" => $item->id,
+							"title" => (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING):""),
+							"image_small" => $item->images->thumbnail->url,
+							"image_middle" => $item->images->low_resolution->url,
+							"image_large" => $item->images->standard_resolution->url
+						);				
+		
+			endforeach;
+			
+			return $images[0]["id"];
 		
 		}
 
