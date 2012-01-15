@@ -16,11 +16,11 @@ No more manual embedding Instagram images into your posts, let this plugin take 
 
 Install the plugin. Log in to Instagram, pick your default WordPress post settings, and you are done. Take a photo or lots on Instagram. The next time someone visits your site, a new post will be created with your each photo from Instagram. 
 
-** Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed **
+**Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 Full list of features:
 
-* Simple connection to Instagram. Login securely to Instagram to authorise this plugin to access your image data. ** This plugin does not ask or store your Instagram username and password, you only log into Instagram. **
+* Simple connection to Instagram. Login securely to Instagram to authorise this plugin to access your image data. **This plugin does not ask or store your Instagram username and password, you only log into Instagram.**
 * Helpful feed of images in the admin screen.
 * Option to manually set the last image in the feed, so all later images will be posted.
 * Configurable post settings:
@@ -51,7 +51,7 @@ You can use the built in installer and upgrader, or you can install the plugin m
 
 If you have to upgrade manually simply repeat the installation steps and re-enable the plugin.
 
-** Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed **
+**Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 == Changelog ==
 
