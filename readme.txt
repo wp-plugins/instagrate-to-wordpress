@@ -33,7 +33,9 @@ Full list of features:
 	* 	Plugin link at the end of the post body text. Can be turned off.
 	
 [Contact](http://www.polevaultweb.com/contact/)
+
 [Visit the plugin page](http://polevaultweb.com/instagrate-to-wordpress/)
+
 [Follow on Twitter for updates](http://twitter.com/polevaultweb/)
 
 == Installation ==
@@ -63,7 +65,7 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 Please contact via info@polevaultweb.com
 
-= What about the InstaPost Press plugin?
+= What about the InstaPost Press plugin? =
 
 This is the newer version of that plugin. It has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin.
 
