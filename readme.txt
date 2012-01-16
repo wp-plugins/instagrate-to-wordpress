@@ -75,6 +75,10 @@ Please contact via info@polevaultweb.com
 
 This is the newer version of that plugin. It has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin.
 
+= Does the plugin support WordPress Multisite? =
+
+No, currently the plugin does not support Multisite. It's on the development todo list.
+
 == Screenshots ==
 
 1. Screenshot of the Instagram settings of manual last image.
