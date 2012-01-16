@@ -1,6 +1,8 @@
 === Instagrate to WordPress ===
 Contributors: polevaultweb
 Donate link: http://www.polevaultweb.com/contact/
+Plugin URI: http://www.polevaultweb.com/instagrate-to-wordpress/
+Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
 Tested up to: 3.3
