@@ -687,7 +687,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 										
 										'selected'                => $postcats,
 										'include_selected'        => true,
-										'include_selected'        => true,
+										'hide_empty'			  => 0,
 										'orderby'				  => 'name',
 										'order'					  => 'ASC',
 										'name'                    => 'itw_postcats'
