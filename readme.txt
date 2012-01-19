@@ -59,7 +59,7 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 = 1.0.2 = 
 
-* Category dropdown in WordPress settings now shows all categories even if no posts exist for the category. Also order by name.
+* Category dropdown in WordPress post settings now shows all categories even if no posts exist for the category. Also order by name.
 
 = 1.0.1 =
 
