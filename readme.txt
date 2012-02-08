@@ -92,7 +92,7 @@ No, currently the plugin does not support Multisite. It's on the development tod
 
 == Upgrade Notice ==
 
-Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed
+Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed.
 
 == Disclaimer ==
 
