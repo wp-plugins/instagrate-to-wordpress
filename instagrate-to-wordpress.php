@@ -52,7 +52,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			//styles and scripts
 			add_action('admin_init', get_class()  . '::register_styles');
 			//register the listener function
-			add_action( 'pre_get_posts', get_class()  . '::auto_post_images');	
+			add_action( 'init', get_class()  . '::auto_post_images');	
 			
 		
 			
@@ -177,34 +177,48 @@ if (!class_exists("instagrate_to_wordpress")) {
 				
 				$instagram = new itw_Instagram(CLIENT_ID, CLIENT_SECRET, $access_token);
 				
-				$params =  array('min_id' => $manuallstid);
-			
-				$data = $instagram->get('users/'.$userid.'/media/recent', $params);
-				//var_dump($data);
-			
-			
-				//echo $manuallstid;
-				$images = array();
+				try {
+						
+					$params =  array('min_id' => $manuallstid);
 				
-				if($data->meta->code == 200):
+					$data = $instagram->get('users/'.$userid.'/media/recent', $params);
+					//var_dump($data);
 				
 				
-					foreach($data->data as $item):
-												
-								$images[] = array(
-									"id" => $item->id,
-									"title" => (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING):""),
-									"image_small" => $item->images->thumbnail->url,
-									"image_middle" => $item->images->low_resolution->url,
-									"image_large" => $item->images->standard_resolution->url
-								);				
+					//echo $manuallstid;
+					$images = array();
+					
+					if($data->meta->code == 200):
+					
+					
+						foreach($data->data as $item):
+													
+									$images[] = array(
+										"id" => $item->id,
+										"title" => (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING):""),
+										"image_small" => $item->images->thumbnail->url,
+										"image_middle" => $item->images->low_resolution->url,
+										"image_large" => $item->images->standard_resolution->url
+									);				
+					
+						endforeach;
+					
+					endif;
+								
+					//var_dump($images);			
+					return $images;
 				
-					endforeach;
 				
-				endif;
-							
-				//var_dump($images);			
-				return $images;
+				} catch(InstagramApiError $e) {
+						
+						update_option('itw_accesstoken', '');
+						update_option('itw_username', '');
+						update_option('itw_userid', '');
+						update_option('itw_manuallstid', '');
+					
+				
+				}
+
 			
 			endif;
 	
@@ -238,7 +252,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$manuallstid = get_option('itw_manuallstid');
 					
 			$images = self::get_images();
-			
+			//$images = array_reverse($images_orig);
 			//get count of array of images
 			$count = sizeof($images);
 			
@@ -284,9 +298,29 @@ if (!class_exists("instagrate_to_wordpress")) {
 					
 		}
 		
+		/* Log out of instagram */
+		public static function log_out()
+		{	
+			//ob_start();
+			
+			//clear cookies for instagram credentials
+			//setcookie ("sessionid", "", time() - 3600, "/","instagram.com");			
+			
+			//Clear user settings in db
+			update_option('itw_accesstoken', '');
+			update_option('itw_username', '');
+			update_option('itw_userid', '');
+			update_option('itw_manuallstid', '');
+			
+			
+		
+		}
+		
 		/* Posting to WordPress */
 		public static function blog_post($post_title, $post_image) {
 
+			
+			$orig_title = $post_title;
 			
 			$imagesize = get_option('itw_imagesize');
 			$imageclass = get_option('itw_imageclass');
@@ -317,7 +351,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 				if($pos === false) {
 					
 					//no %%title%% found so put instagram title after custom title
-					$post_title = $customtitle.' '.$post_title;
+					$post_title = $customtitle;;
 				
 				}
 				else {
@@ -328,12 +362,13 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 			}
 			
-			//Custom Post Text
+			//Custom Post Text			
 			
 			$post_body = '<a href="'.$post_image.'" title="'.$post_title.'"><img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' /></a>';
 			
 			if ($customtext != '' ){
 			
+				//check if %%image%% has been used 
 				$pos = strpos(strtolower($customtext),'%%image%%');
 				if($pos === false) {
 					
@@ -346,6 +381,24 @@ if (!class_exists("instagrate_to_wordpress")) {
 				 	//%%image%% found so replace it with instagram title
 				 	$post_body = str_replace("%%image%%", '<br/>'.$post_body.'<br/>', $customtext);
 				}
+				
+				//check if %%title%% has been used
+				$pos = strpos(strtolower($customtext),'%%title%%');
+				if($pos === false) {
+					
+					//no %%title%% found so put instagram title after custom title
+					$post_body = $post_body;
+				
+				}
+				else {
+				 	
+				 	//%%title%% found so replace it with instagram title
+				 	$post_body = str_replace("%%title%%", $orig_title, $post_body);
+				 
+				}
+
+				
+				
 			
 			}
 			
@@ -356,6 +409,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 				$post_body  = $post_body.' <br/><small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small>';
 			
 			}
+			
+			$post_body = "<!-- This post is created by Instagrate to WordPress Plugin - http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ -->".$post_body;
 			
 			
 			// Create post object
@@ -375,9 +430,18 @@ if (!class_exists("instagrate_to_wordpress")) {
 			
 		
 		/* Plugin Settings page and settings data */
-		public static function settings_page() {
+		public static function settings_page() { 
 		
+		
+			if($_POST['itw_logout'] == 'Y'){
+							
+					self::log_out();
+							
+			}
+				
 			$oldplugin ='instapost-press/instapost-press.php';
+			
+			
 			
 			if(is_plugin_active($oldplugin))
 			{
@@ -450,6 +514,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 						if($feed->meta->code == 200): 
 						//var_dump($feed);
 						
+							
+							
 							if($_POST['itw_hidden'] == 'Y') {
 														
 								update_option('itw_configured', 'Installed');
@@ -567,6 +633,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 				<?php echo $msg ?>
 				<?php if ($loginUrl != 'hide'): ?>
 				<a href="<?php echo $loginUrl; ?>">Log in</a>
+				<iframe id="logoutframe" src="https://instagram.com/accounts/
+logout/" width="0" height="0"></iframe>
 				<?php endif; ?>
 				</p></div>
 				
@@ -574,8 +642,19 @@ if (!class_exists("instagrate_to_wordpress")) {
 					<div class="loggedin">
 						<div class="itw_connected">
 							<p>
-								Connected to Instagram as <b><?php echo $msg; ?></b>
+								Connected to Instagram as <span><?php echo $msg; ?></span>
+								
 							</p>
+						</div>
+						<div class="logout">
+							<form name="itw_logout" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
+									<input type="hidden" name="itw_logout" value="Y">
+									
+									
+									<input type="submit" class="button" value="Log out" name="logout" onclick="" >
+									</form>
+									
+									 
 						</div>
 					</div>
 					<div class="clear"></div>
@@ -706,7 +785,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 										); 
 										 wp_dropdown_users( $args ); ?> </p>
 										 
-										 <p class="itw_info">If the below custom text fields are left blank, only the Instagram text and image will be used in your post. If you enter text it will appear before the title and image. To position the Instagram data with your custom text use the syntax %%title%% and %%image%%</p>
+										 <p class="itw_info">If the below custom text fields are left blank, only the Instagram text and image will be used in your post. To position the Instagram data with your custom text use the syntax %%title%% and %%image%%. The %%image%% text cannot be used in the Custom Title Text, and if it doesn't appear in the Body Text the Image will appear at the end of the post body.</p>
 										<p><label class="textinput">Custom Title Text:</label><input type="text" class="body_title" name="itw_customtitle" value="<?php echo $customtitle; ?>" > <small>eg. %%title%% - from Instagram</small></p>
 										
 										<p><label class="textinput">Custom Body Text:</label><textarea class="body_text" name="itw_customtext" ><?php echo $customtext; ?></textarea> <small>eg. Check out this new image %%image%% from Instagram</small></p>
@@ -817,10 +896,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 				
 				
 					<div id="links">
-						We hope you enjoy the plugin. Any issues please contact us -  		
-						<a href="mailto:info@polevaultweb.com">Contact</a> |
+						We hope you enjoy the plugin | <a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum</a> |
 						<a title="Follow on Twitter" href="http://twitter.com/#!/polevaultweb">@polevaultweb</a> |
-						<a href="http://www.polevaultweb.com/instapost-press/">Plugin Site</a> |
+						<a href="http://www.polevaultweb.com/plugins/instagrate-to-wordpress/">Plugin Site</a> |
 						<a href="http://led24.de/iconset/">16px Icons</a>
 					</div>
 					

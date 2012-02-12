@@ -21,7 +21,7 @@ clear:both;
 
 #ipp_content_right
 {
-	width:45%;
+	width:50%;
 }
 
 h4 {
@@ -108,6 +108,24 @@ background-image: url('../images/disk.png');
 color: #9F6000;
 background-color: #FEEFB3;
 background-image: url('../images/error.png');
+}
+
+.itw_connected p span
+{
+	font-weight: bold;
+	
+}
+
+.loggedin {
+
+float: left;
+}
+
+.logout {
+
+float: left;
+margin-left: 5px;
+margin-top: 15px;
 }
 
 

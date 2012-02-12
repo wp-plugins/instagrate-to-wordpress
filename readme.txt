@@ -1,7 +1,7 @@
 === Instagrate to WordPress ===
 Contributors: polevaultweb
 Donate link: http://www.polevaultweb.com/contact/
-Plugin URI: http://www.polevaultweb.com/instagrate-to-wordpress/
+Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/
 Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
@@ -34,11 +34,10 @@ Full list of features:
 	*	Post Author (selected from dropdown of available authors)
 	* 	Plugin link at the end of the post body text. Can be turned off.
 	
-How to [contact](http://www.polevaultweb.com/contact/)
 
-Visit the plugin page [http://www.polevaultweb.com/instagrate-to-wordpress/](http://www.polevaultweb.com/instagrate-to-wordpress/)
+If you have any issues or feature requests please visit and use the [Support Forum](http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/)
 
-Follow on Twitter for updates [@polevaultweb](http://www.twitter.com/polevaultweb/)
+[Plugin Page](http://www.polevaultweb.com/plugins/instagrate-to-wordpress/) | [@polevaultweb](http://www.twitter.com/polevaultweb/) | [Donate by signing up to Dropbox - free space for you and me](https://www.dropbox.com/referrals/NTI4NjU1OTQ1OQ)
 
 == Installation ==
 
@@ -57,6 +56,16 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 == Changelog ==
 
+= 1.0.3 =
+
+* Bug fix - resolved multiple posts for one image.
+* Bug fix - resolved issues for authenticating plugin with Instagram for blogs not in root directory, eg. /blog/
+* Bug fix - resolved issues where users were receiving unhandled exceptions for the plugin on their blog
+
+* Log out button to allow you to change which Instagram account the plugin uses.
+* When a custom post title is added without the %%title%% text, it no longer adds the Instagram image title as well.
+* You can now use the %%title%% text within the post body.
+
 = 1.0.2 = 
 
 * Category dropdown in WordPress post settings now shows all categories even if no posts exist for the category. Also order by name.
@@ -73,7 +82,7 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 = I have an issue with the plugin =
 
-Please contact via info@polevaultweb.com
+Please visit the [Support Forum] (http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/) and see what has been raised before, if not raise a new topic.
 
 = What about the InstaPost Press plugin? =
 
@@ -82,6 +91,14 @@ This is the newer version of that plugin. It has been discontinued because of a 
 = Does the plugin support WordPress Multisite? =
 
 No, currently the plugin does not support Multisite. It's on the development todo list.
+
+= Can I use more than one Instagram account? =
+
+No, not at the moment. The plugin only allows one Instagram account at a time.
+
+= I have a feature request =
+
+Please visit and add to the [Feature Requests topic](http://www.polevaultweb.com/support/topic/feature-requests/) on the support forum.
 
 == Screenshots ==
 

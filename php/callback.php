@@ -1,5 +1,6 @@
 <?php
-session_start(); 
+session_start();
+
 require_once 'instagram.php';
 
 $instagram = new itw_Instagram(CLIENT_ID, CLIENT_SECRET, null);
@@ -30,7 +31,9 @@ else
 
 }
 
-$redirect = adminOptionsURL();
+$redirect = adminOptionsURL($url);
+
+
 header("Location: ".$redirect);
 
 ?>
