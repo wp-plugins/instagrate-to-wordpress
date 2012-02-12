@@ -1,7 +1,7 @@
 <?php
 /*  
 Plugin Name: Instagrate to WordPress
-Plugin URI: http://www.polevaultweb.com/instagrate-to-wordpress/  
+Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
 Version: 1.0.2
