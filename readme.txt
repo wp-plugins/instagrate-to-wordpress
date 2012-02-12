@@ -61,7 +61,6 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 * Bug fix - resolved multiple posts for one image.
 * Bug fix - resolved issues for authenticating plugin with Instagram for blogs not in root directory, eg. /blog/
 * Bug fix - resolved issues where users were receiving unhandled exceptions for the plugin on their blog
-
 * Log out button to allow you to change which Instagram account the plugin uses.
 * When a custom post title is added without the %%title%% text, it no longer adds the Instagram image title as well.
 * You can now use the %%title%% text within the post body.
@@ -82,7 +81,7 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 = I have an issue with the plugin =
 
-Please visit the [Support Forum] (http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/) and see what has been raised before, if not raise a new topic.
+Please visit the [Support Forum](http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/) and see what has been raised before, if not raise a new topic.
 
 = What about the InstaPost Press plugin? =
 
