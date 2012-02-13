@@ -56,6 +56,10 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 == Changelog ==
 
+= 1.0.4 =
+
+* Bug fix - resolved WordPress forcing a re-login after trying to authenticate plugin, and never fully activating Instagrate
+
 = 1.0.3 =
 
 * Bug fix - resolved multiple posts for one image.
