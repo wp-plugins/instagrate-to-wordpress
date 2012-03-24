@@ -6,7 +6,7 @@ Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1.0.4
+Stable tag: 1.1.0
 
 Integrate your Instagram images and your WordPress blog with automatic posting of new images into blog posts.
 
