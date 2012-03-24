@@ -117,7 +117,7 @@ class itw_Instagram {
 class InstagramApiError extends Exception {}
 
 
- function curPageURL() {
+ function itw_curPageURL() {
 		 
 		 $pageURL = 'http';
 		 if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
@@ -127,10 +127,10 @@ class InstagramApiError extends Exception {}
 		 } else {
 		  $pageURL .= $_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];
 		 }
-		 return $pageURL;
+		 return strtolower ($pageURL);
 		}
 		
- function adminOptionsURL($url) {
+ function itw_adminOptionsURL($url) {
 		 
 		 $pageURL = substr($url,0, strrpos($url, "/wp-content"));
 		 
@@ -138,7 +138,7 @@ class InstagramApiError extends Exception {}
 		 return $pageURL.'/wp-admin/options-general.php?page=instagratetowordpress';
 		}
 		
- function pluginsURL() {
+ function itw_pluginsURL() {
 		 
 		 $pageURL = 'http';
 		 if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
@@ -151,7 +151,7 @@ class InstagramApiError extends Exception {}
 		 return $pageURL.'/wp-admin/plugins.php';
 		}
 		
-function truncateString($str, $max, $rep = '...') {
+function itw_truncateString($str, $max, $rep = '...') {
   if(strlen($str) > $max) {
     $leave = $max - strlen($rep);
     return substr_replace($str, $rep, $leave);

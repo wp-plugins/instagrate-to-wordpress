@@ -15,7 +15,7 @@ if(isset($_GET['error']) || isset($_GET['error_reason']) || isset($_GET['error_d
 else
 {
 
-	$url =  curPageURL();
+	$url =  itw_curPageURL();
 	$url = preg_replace('/\?.*/', '', $url);
 
 	$access_token = $instagram->getAccessToken($_GET['code'], REDIRECT_URI.'?return_uri='.$url); 
@@ -31,9 +31,9 @@ else
 
 }
 
-$redirect = adminOptionsURL($url);
+$redirect = itw_adminOptionsURL($url);
 
-
+//print $redirect;
 header("Location: ".$redirect);
 
 ?>
