@@ -1,6 +1,6 @@
 === Instagrate to WordPress ===
 Contributors: polevaultweb
-Donate link: http://www.polevaultweb.com/contact/
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R6BY3QARRQP2Q
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/
 Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
@@ -26,18 +26,24 @@ Full list of features:
 * Helpful feed of images in the admin screen.
 * Option to manually set the last image in the feed, so all later images will be posted.
 * Configurable post settings:
-	*	Post title - default as Instagram image title. Custom title text before Instagram title, or embed the Instagram title using %%title%%
-	*	Post body text - default as Instagram image. Custom body text before Instagram image, or embed the Instagram image using %%image%%
-	*	Image size
-	*	Image CSS class
-	*	Post Category (selected from dropdown of available categories)
-	*	Post Author (selected from dropdown of available authors)
+	*	Post title - default as Instagram image title. Custom title text before Instagram title, or embed the Instagram title using %%title%%.
+	*	Post body text - default as Instagram image. Custom body text before Instagram image, or embed the Instagram image using %%image%%. You can also embed the %%title%%.
+	* 	NEW 1.1.0: Post date can be either Instagram image date or the date at posting.
+	* 	NEW 1.1.0: Image can be either saved to media library within WordPress or linked to Instagram image.
+	*	NEW 1.1.0: If you save images to the media library you can now set the image as Featured.
+	* 	NEW 1.1.0: Link to image setting.
+	*	Image size.
+	*	Image CSS class.
+	* 	NEW 1.1.0: Post Format.
+	*	Post Category (selected from dropdown of available categories).
+	*	Post Author (selected from dropdown of available authors).
 	* 	Plugin link at the end of the post body text. Can be turned off.
+	*	NEW 1.1.0: Debug mode setting to enable us to troubleshoot further problems with the plugin. Off by default.
 	
 
 If you have any issues or feature requests please visit and use the [Support Forum](http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/)
 
-[Plugin Page](http://www.polevaultweb.com/plugins/instagrate-to-wordpress/) | [@polevaultweb](http://www.twitter.com/polevaultweb/) | [Donate by signing up to Dropbox - free space for you and me](https://www.dropbox.com/referrals/NTI4NjU1OTQ1OQ)
+[Plugin Page](http://www.polevaultweb.com/plugins/instagrate-to-wordpress/) | [@polevaultweb](http://www.twitter.com/polevaultweb/) | [Donate with PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R6BY3QARRQP2Q) | [Donate by signing up to Dropbox - free space for you and me](https://www.dropbox.com/referrals/NTI4NjU1OTQ1OQ)
 
 == Installation ==
 
@@ -55,6 +61,17 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 **Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 == Changelog ==
+
+= 1.1.0 =
+
+* Bug fix - resolved multiple posting issues. The plugin will only post an image from Instagram 2 minutes after creation to stop any duplicates coming through on the API. Many thanks to testers [@onlineheld](http://www.twitter.com/onlineheld), [@travelhappy](http://www.twitter.com/travelhappy), Tyler Conlon
+* Bug fix - issues with logging in for some users.
+* You can now set how the Instagram image is used by the plugin. New settings for saving to the media library and making featured image.
+* You can now set Post Format.
+* Post date can now be selected to be the Instagram image's created date or the date at posting on WordPress.
+* Can now control if the image is wrapped in a link	to the image. On by default for blogs using plugins such as Lightbox and Fancybox.
+* Debug mode added for troubleshooting issues with the plugin.
+* Donate Link added.
 
 = 1.0.4 =
 
@@ -93,7 +110,7 @@ This is the newer version of that plugin. It has been discontinued because of a 
 
 = Does the plugin support WordPress Multisite? =
 
-No, currently the plugin does not support Multisite. It's on the development todo list.
+No, currently the plugin does not support Multisite.
 
 = Can I use more than one Instagram account? =
 

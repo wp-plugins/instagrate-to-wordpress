@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.0.4
+Version: 1.1.0
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -24,12 +24,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 */
 
+//plugin version
+define( 'ITW_PLUGIN_VERSION', '1.1.0');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
 define( 'ITW_PLUGIN_SETTINGS', 'instagratetowordpress');
 
-define( 'RETURN_URI', plugin_dir_url( __FILE__ ).'php/callback.php');
+define( 'RETURN_URI', strtolower(plugin_dir_url( __FILE__ ).'php/callback.php'));
 
 require_once ITW_PLUGIN_PATH.'php/instagram.php';
 
@@ -44,18 +46,21 @@ if (!class_exists("instagrate_to_wordpress")) {
 			//cache fix
 			session_cache_limiter( FALSE );
 			session_start(); 
-			
+						
 			//settings menu
 			add_action('admin_menu',get_class()  . '::register_settings_menu' );
 			//settings link
 			add_filter('plugin_action_links', get_class()  . '::register_settings_link', 10, 2 );
 			//styles and scripts
 			add_action('admin_init', get_class()  . '::register_styles');
+			//register upgrade check function
+			add_action('admin_init', get_class()  . '::upgrade_check');
+			//register uninstall hook
+			register_uninstall_hook(__FILE__, 'plugin_uninstall');
+						
 			//register the listener function
-			add_action( 'init', get_class()  . '::auto_post_images');	
-			
-		
-			
+			add_action( 'template_redirect', get_class()  . '::auto_post_images');	
+	 	
 		}
 		
 		/* Add menu item for plugin to Settings Menu */
@@ -64,7 +69,7 @@ if (!class_exists("instagrate_to_wordpress")) {
    			add_options_page( 'Instagrate to WordPress', 'Instagrate to WordPress', 1, ITW_PLUGIN_SETTINGS, get_class() . '::settings_page' );
 	  				
 		}
-
+		
 		/* Add settings link to Plugin page */
 		public static function register_settings_link($links, $file) {  
    		  		
@@ -77,7 +82,6 @@ if (!class_exists("instagrate_to_wordpress")) {
 			}
 			return $links;
 			
-	  				
 		}
 		
 		/* Register custom stylesheets and script files */
@@ -98,6 +102,82 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 		}
 		
+		/* Register custom upgrade check function */
+		public static function upgrade_check() {
+		
+			$saved_version = get_option( 'itw_version' );
+			$current_version = isset($saved_version) ? $saved_version : 0;
+
+			if ( version_compare( $current_version, ITW_PLUGIN_VERSION, '==' ) )
+				return;
+				
+			//specific version checks on upgrade
+			if ( version_compare( $current_version, '1.1.0', '<' ) ) {
+			
+				//set new defaults
+				
+				//set image link to true
+				update_option('itw_imagelink', true);
+				//set debug mode to false
+				update_option('itw_debugmode', false);
+				//set image saving
+				update_option('itw_imagesave', 'link');	 
+				//set image featured option
+				update_option('itw_imagefeat', 'nofeat');	
+				//set image date
+				update_option('itw_post_date', 'now');	
+				//set post format
+				update_option('itw_postformat', 'Standard');	
+				//make sure the processing transient is set and reset for new and beta testers
+				set_transient('itw_posting' ,'done', 60*5);
+			}	
+							
+			//update the database version
+			update_option( 'itw_version', ITW_PLUGIN_VERSION );
+		
+		}
+		
+		/* Register custom uninstall function */
+		public static function plugin_uninstall() {
+		
+			//delete options
+			delete_option('itw_accesstoken');
+			delete_option('itw_username');
+			delete_option('itw_userid');
+			delete_option('itw_manuallstid');
+			delete_option('itw_configured');
+			delete_option('itw_manuallstid');
+			delete_option('itw_imagesize');
+			delete_option('itw_imageclass');
+			delete_option('itw_imagelink');
+			delete_option('itw_postcats');
+			delete_option('itw_postauthor');
+			delete_option('itw_postformat');
+			delete_option('itw_post_date');
+			delete_option('itw_customtitle');
+			delete_option('itw_customtext');
+			delete_option('itw_pluginlink');
+			delete_option('itw_imagesave');
+			delete_option('itw_imagefeat');
+			delete_option('itw_debugmode');
+			
+			//remove hooks
+			remove_action( 'template_redirect', get_class()  . '::auto_post_images');
+		
+		}
+			
+		/* Plugin debug functions */
+		public static function plugin_debug_write($string) {
+		
+			//Set the filepath and filename for the WP Hook Sniff text report */
+			$itw_debug_path_file = ITW_PLUGIN_PATH . "debug.txt";
+			
+			$fh = fopen( $itw_debug_path_file, "a" ) or die( "can't open file" );
+			fwrite( $fh, $string );
+			fclose( $fh );
+			
+		}
+		
 		/* Register default options for plugin link, author, category, post type */
 		public static function set_default_options($lastid) {
 			
@@ -110,9 +190,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			{
 				update_option('itw_manuallstid', $lastid);
 			}
-			
-			
-			
+		
 			$configured= '';
 			$configured= get_option('itw_configured');
 						
@@ -122,12 +200,24 @@ if (!class_exists("instagrate_to_wordpress")) {
 				//update_option('itw_manuallstid', $lastid);
 				
 							
-				//Set plugin link to true
-				update_option('itw_pluginlink', true);
-			
-				//Set custom post type to post
-				//update_option('itw_customposttype', 'post');
-			
+				//Set plugin link to false
+				update_option('itw_pluginlink', false);
+				
+				//set image link to true
+				update_option('itw_imagelink', false);
+				
+				//set debug mode as off by default
+				update_option('itw_debugmode', false);
+				
+				//set image saving
+				update_option('itw_imagesave', 'link');
+				 
+				//set image featured option
+				update_option('itw_imagefeat', 'nofeat');
+				
+				//set post format
+				update_option('itw_postformat', 'Standard');
+						
 				//Set author
 				$current_user =  wp_get_current_user();
 				$username = $current_user->ID;
@@ -157,6 +247,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 										
 				}
 				update_option('itw_postcats', $cat);
+				
+				//set post date 
+				update_option('itw_post_date','now');
 				
 
 			}
@@ -190,7 +283,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 					
 					if($data->meta->code == 200):
 					
-					
+		
 						foreach($data->data as $item):
 													
 									$images[] = array(
@@ -198,14 +291,22 @@ if (!class_exists("instagrate_to_wordpress")) {
 										"title" => (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING):""),
 										"image_small" => $item->images->thumbnail->url,
 										"image_middle" => $item->images->low_resolution->url,
-										"image_large" => $item->images->standard_resolution->url
+										"image_large" => $item->images->standard_resolution->url,
+										"created" => $item->created_time
 									);				
 					
 						endforeach;
 					
 					endif;
-								
-					//var_dump($images);			
+					
+					//order array by earliest image
+					foreach ($images as $key => $row) {
+						$orderByDate[$key]  = strtotime($row['created']);
+					}
+
+					array_multisort($orderByDate, SORT_ASC, $images);
+					
+			
 					return $images;
 				
 				
@@ -216,14 +317,13 @@ if (!class_exists("instagrate_to_wordpress")) {
 						update_option('itw_userid', '');
 						update_option('itw_manuallstid', '');
 					
-				
 				}
-
-			
+	
 			endif;
 	
 		}
 		
+		/* Get last ID of image array */
 		public static function get_last_id($data) {
 			
 			$images = array();
@@ -249,51 +349,202 @@ if (!class_exists("instagrate_to_wordpress")) {
 		/* Main function to post Instagram images */
 		public static function auto_post_images() {
 		
-			$manuallstid = get_option('itw_manuallstid');
-					
-			$images = self::get_images();
-			//$images = array_reverse($images_orig);
-			//get count of array of images
-			$count = sizeof($images);
+		
+			//check if date is Instagram or not
+			$date_check = get_option('itw_post_date');
+			$debugmode = get_option('itw_debugmode');
 			
-			//set counter
-			$last_id = 0;
+			if ($date_check == false) {$date_check = 'now';  }
 			
-			//loop through array to get image data
-			for ($i = 0; $i < $count; $i++) {
-					
-				//Don't include image of $manuallstid
-				if ($images[$i]["id"] != $manuallstid) :
-					
-				//get image variables
-				$title = $images[$i]["title"];
-				$image = $images[$i]["image_large"];
+			//debug
+			$debug = "------------------------------------------------------------------------------------------------------------------------------------------\n";
+			$debug .= "Instagrate to WordPress - Plugin Debug Output: " . Date( DATE_RFC822 ) . "\n";
+			$debug .= "PAGE LOAD " . Date( DATE_RFC822 ) . "\n";
+			$debug .= "------------------------------------------------------------------------------------------------------------------------------------------\n";
+			
+			$debug .= "Home page is: ".get_home_template(). "\n";
+			$debug .= "Current page is: ".get_page_template(). "\n";
+			$debug .= "------------------------------------------------------------------------------------------------------------------------------------------\n";
+			
+			//check if page is blog page - only run
+			if (is_home()) {
+			
 				
-				$last_id = $images[$i]["id"];
-				//echo $last_id;
-				
-				/*
-				echo $last_id;
-				echo $title;
-				echo $image;
-				*/
-							
-				//post new images to wordpress
-				self::blog_post($title,$image);
-
-				
-				endif;
+				$debug .= "--START Blog is_home() check TRUE ". Date( DATE_RFC822 ) . "\n";
+				$debug .= "--START Auto post function START ". Date( DATE_RFC822 ) . "\n";
+				$debug .= "--Marker: ". get_transient( 'itw_posting' )  . "\n";
 			
-			}
-			
-			if ($last_id != 0)
-			{
-				//update last id field in database with last id of image added
+				// Check if auto_post_process has NOT already been 
+				$marker = get_transient('itw_posting');
+				
+				$last_run = get_option('itw_last_run');
+				
+				if ($last_run === false) {
+					
+					$last_run = 0;
+				}
+				
+				if (( false === $marker  || $marker != 'processing' ) && ( time() - $last_run > 60 )) {
+				
+					
+					try {
+					
+						//set cache transient to mark as processing
+						set_transient('itw_posting' ,'processing', 60*5);
+						
+						$manuallstid = get_option('itw_manuallstid');
+						
+						//debug
+						$debug .= "----START Auto post function: ". Date( DATE_RFC822 ) . "\n";
+						$debug .= "----Marker: ". get_transient( 'itw_posting' )  . "\n";
+						$debug .= "----Last ID:".$manuallstid."\n";
+						
 								
-				//echo '<h1>'.$images[0]["id"].'</h1>';
-				update_option('itw_manuallstid', $images[0]["id"]);
-			}
+						$images = self::get_images();
+						//$images = array_reverse($images_orig);
+						//get count of array of images
+						$count = sizeof($images);
+						
+						//debug
+						$debug .= "----Count of Images: ".$count."\n";
+						
+						
+						//set counter
+						$last_id = 0;
+						
+						//debug
+						$debug .= "------START Auto post function Image Loop:  ". Date( DATE_RFC822 ) . "\n";
+						
+						//loop through array to get image data
+						for ($i = 0; $i < $count; $i++) {
+							
+							//debug
+							$debug .= "--------".$i.": Loop:  ". Date( DATE_RFC822 ) . "\n";
+							
+							//Don't include image of $manuallstid
+							if ($images[$i]["id"] != $manuallstid) {
+								
+								//debug
+								$debug .= "--------Image Id:".$images[$i]["id"]." Does not equal Last Id:".$manuallstid."\n";
+							
+								// only allow the posting to happen if image timestamp is 2 minutes ago, to stop double posting through API
+								if ((time() - $images[$i]["created"]) > 120) {
+									
+									//get image variables
+									$title = $images[$i]["title"];
+									$image = $images[$i]["image_large"];
+									
+									$last_id = $images[$i]["id"];
+									
+									//debug
+									$debug .= "----------Auto post function Ready to Post:  ". Date( DATE_RFC822 ) . "\n";
+									$debug .= "----------Title: ".$title."\n";
+									$debug .= "----------Image: ".$image."\n";
+									
+									
+									if ($date_check == 'instagram') {
+									
+										$post_date = $images[$i]["created"];
+									
+									} else {
+									
+										$post_date = time() - (($count-$i) * 20);
+									}
+									
+									//post new images to wordpress
+									$debug .= self::blog_post($title,$image, $post_date);
+									
+									
 
+								}
+								else {
+									
+									//debug
+									$debug .= "------END Auto post function: ". Date( DATE_RFC822 ) . "\n";
+									$debug .= "------Image created within 2 minutes of posting loop\n";
+									$debug .= "------Image Created:".$images[$i]["created"] ."\n";
+									$debug .= "------Posting Time:".time() ."\n";
+																
+									//break out of image loop
+									break;
+								}
+							
+							} else {
+							
+									//transient exists already posting ignore
+									//debug
+									//debug
+									$debug .= "--------".$images[$i]["id"]." == ". $manuallstid . "\n";
+									$debug .= "--------END Auto post function STOP as last ID already posted ". Date( DATE_RFC822 ) . "\n";
+														
+							}
+							
+							//set last run timestamp
+							update_option('itw_last_run', time());
+						
+						}
+						
+										
+						if ($last_id != 0)
+						{
+							//update last id field in database with last id of image added
+											
+							//echo '<h1>'.$images[0]["id"].'</h1>';
+							//debug
+							$debug .= "----------START End loop write Last Image ID: ". Date( DATE_RFC822 ) . "\n";
+							$debug .= "----------First Image ID of Loop: ".$images[0]["id"]. "\n";
+							$debug .= "----------Current Last ID: ".get_option('itw_manuallstid').  "\n";
+							$debug .= "----------Writing Last ID ". Date( DATE_RFC822 ) . "\n";
+							//update_option('itw_manuallstid', $images[0]["id"]);
+							update_option('itw_manuallstid', $last_id);
+							$debug .= "----------Written Last ID: ".get_option('itw_manuallstid'). "\n";
+						}
+						
+					}
+					
+					catch(Exception $e){
+					
+					//var_dump $e;
+					
+					}
+											
+					//clear processing marker
+					set_transient('itw_posting' ,'done', 60*5);
+					
+					//debug
+					$debug .= "------END Auto post function Image Loop:  ". Date( DATE_RFC822 ) . "\n";
+					$debug .= "------Marker:  ". get_transient( 'itw_posting' )  . "\n";
+				
+				} else 	{
+				
+				//transient exists already posting ignore
+				//debug
+
+				$debug .= "----END Auto post function failed as Transient Exists: ".$marker." (Already posting) ". Date( DATE_RFC822 ) . "\n";
+				$debug .= "----END Auto post function failed as started less than a minute since last run - ". $last_run . " Now - ".time()."\n";
+				
+				
+				}
+				
+				
+				//debug
+				$debug .= "--END Auto post function END ". Date( DATE_RFC822 ) . "\n";
+				
+				
+				
+			} else {
+				
+				//not blog page so don't run
+				//debug
+				$debug .= "--END Blog is_home() check FALSE ". Date( DATE_RFC822 ) . "\n";
+			
+			}
+			
+			if ($debugmode) {
+				
+				self::plugin_debug_write($debug);
+			
+			}
 			
 					
 		}
@@ -307,6 +558,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 			//setcookie ("sessionid", "", time() - 3600, "/","instagram.com");			
 			
 			//Clear user settings in db
+			session_destroy ();
+			
 			update_option('itw_accesstoken', '');
 			update_option('itw_username', '');
 			update_option('itw_userid', '');
@@ -316,21 +569,69 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 		}
 		
-		/* Posting to WordPress */
-		public static function blog_post($post_title, $post_image) {
+		/* Attach an image to the media library */
+		function attach_image($url) {
+		
+			require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+			require_once(ABSPATH . "wp-admin" . '/includes/file.php');
+			require_once(ABSPATH . "wp-admin" . '/includes/media.php');
 
+
+			$tmp = download_url( $url );
+			$file_array = array(
+				'name' => basename( $url ),
+				'tmp_name' => $tmp
+			);
+			
+			// Check for download errors
+			if ( is_wp_error( $tmp ) ) {
+				@unlink( $file_array[ 'tmp_name' ] );
+				return $tmp;
+			}
+
+			$id = media_handle_sideload( $file_array, 0 );
+			// Check for handle sideload errors.
+		 
+			if ( is_wp_error( $id ) ) {
+				@unlink( $file_array['tmp_name'] );
+				return $id;
+			} else {
+				
+				return $id;
+				
+			}
+		}
+
+		/* Remove the querystring from a URL */
+		function strip_querysting($url) {
+
+			if (strpos($url,'?') !== false) {
+				$url = substr($url,0,strpos($url, '?'));
+			}
+			return $url;
+			
+		}
+		
+		/* Posting to WordPress */
+		public static function blog_post($post_title, $post_image,$post_date) {
+
+			
+			$debug .= "------------START Blog_post ". Date( DATE_RFC822 ) . "\n";
+		
 			
 			$orig_title = $post_title;
 			
 			$imagesize = get_option('itw_imagesize');
 			$imageclass = get_option('itw_imageclass');
-			//$customposttype = get_option('itw_customposttype');
 			$postcats = get_option('itw_postcats');
 			$postauthor = get_option('itw_postauthor');
+			$postformat = get_option('itw_postformat');
 			$customtitle = get_option('itw_customtitle');
 			$customtext = get_option('itw_customtext');
 			$pluginlink = get_option('itw_pluginlink');
-							
+			$imagelink = get_option('itw_imagelink');
+			$imagesave = get_option('itw_imagesave');
+			$imagefeat = get_option('itw_imagefeat');				
 	
 			//Image class
 			if ($imageclass != '')
@@ -362,9 +663,38 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 			}
 			
-			//Custom Post Text			
+			//image settings
+			if ($imagesave == 'link') {
+				//link to instagram image
+				$image = '<img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' />';
 			
-			$post_body = '<a href="'.$post_image.'" title="'.$post_title.'"><img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' /></a>';
+			} else {
+				
+				//put image from instagram into wordpress media library and link to it.
+				$post_image = self::strip_querysting($post_image);
+				//load into media library
+				$attach_id = self::attach_image($post_image);
+				//get new shot image url from media attachment
+				$post_image = wp_get_attachment_url($attach_id);
+				
+				$image = '<img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' />';				
+				
+				//featured image settings
+				if ($imagefeat == 'featonly') {
+				
+					//featured only - only set as featured
+					$image = '';
+			
+				}
+				
+			}
+			
+			//image link
+			if ($imagelink && $image != '' ) {
+				//add link to instagram shot
+				$image = '<a href="'.$post_image.'" title="'.$post_title.'" >'.$image.'</a>';
+			}			
+					
 			
 			if ($customtext != '' ){
 			
@@ -372,14 +702,14 @@ if (!class_exists("instagrate_to_wordpress")) {
 				$pos = strpos(strtolower($customtext),'%%image%%');
 				if($pos === false) {
 					
-					//no %%image%% found so put instagram title after custom title
-					$post_body = $customtext.'<br/>'.$post_body;
+					//no %%image%% found so put instagram image after custom text
+					$post_body = $customtext.'<br/>'.$image;
 				
 				}
 				else {
 				 	
 				 	//%%image%% found so replace it with instagram title
-				 	$post_body = str_replace("%%image%%", '<br/>'.$post_body.'<br/>', $customtext);
+				 	$post_body = str_replace("%%image%%", '<br/>'.$image.'<br/>', $customtext);
 				}
 				
 				//check if %%title%% has been used
@@ -397,33 +727,57 @@ if (!class_exists("instagrate_to_wordpress")) {
 				 
 				}
 
-				
-				
+			} else { 
 			
+				//no custom text just plain old image
+				$post_body = $image;
 			}
 			
 			//Plugin link credit
 			if ($pluginlink == true ) {
-			
-			
-				$post_body  = $post_body.' <br/><small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small>';
-			
+
+				$post_body  = $post_body.' <br/><small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small>';	
 			}
 			
-			$post_body = "<!-- This post is created by Instagrate to WordPress Plugin - http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ -->".$post_body;
-			
-			
+			$post_body = "<!-- This post is created by Instagrate to WordPress, a WordPress Plugin by polevaultweb.com - http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ -->".$post_body;
+
 			// Create post object
 		  	$my_post = array(
-		     'post_title' => $post_title,
-		     'post_content' => $post_body,
-		     'post_status' => 'publish',
-		     'post_author' => $postauthor,
-		     'post_category' => array($postcats)
+				 'post_title' => $post_title,
+				 'post_content' => $post_body,
+				 'post_status' => 'publish',
+				 'post_author' => $postauthor,
+				 'post_category' => array($postcats),
+				 'post_status' => 'publish',
+				 'post_date' => date('Y-m-d H:i:s',$post_date), //The time post was made.
+				 'post_date_gmt' =>  date('Y-m-d H:i:s',$post_date) //[ Y-m-d H:i:s ] //The time post was made, in GMT.
 		 	 );
 		
+				
+			$debug .= "--------------START wp_insert_post ". Date( DATE_RFC822 ) . "\n";
+			
 			// Insert the post into the database
-		  	wp_insert_post( $my_post );
+		  	$new_post = wp_insert_post( $my_post );
+			
+			//apply format if not standard
+			if ($postformat != 'Standard') {
+				set_post_format( $new_post , $postformat);
+			}
+			
+			//apply featured image if needed
+			if ($imagefeat != 'nofeat') {
+			
+				add_post_meta($new_post, '_thumbnail_id', $attach_id);
+				
+			}
+			
+			$debug .= "--------------END wp_insert_post ". Date( DATE_RFC822 ) . "\n";
+			
+
+			$debug .= "------------END blog_post". Date( DATE_RFC822 ) . "\n";
+			
+			
+			return $debug;
 			
 		}	
 
@@ -514,8 +868,6 @@ if (!class_exists("instagrate_to_wordpress")) {
 						if($feed->meta->code == 200): 
 						//var_dump($feed);
 						
-							
-							
 							if($_POST['itw_hidden'] == 'Y') {
 														
 								update_option('itw_configured', 'Installed');
@@ -529,14 +881,20 @@ if (!class_exists("instagrate_to_wordpress")) {
 								$imageclass  = $_POST['itw_imageclass'];
 								update_option('itw_imageclass', $imageclass);
 								
-								//$customposttype  = $_POST['itw_customposttype'];
-								//update_option('itw_customposttype', $customposttype);
-								
+								$imagelink  = $_POST['itw_imagelink'];
+								update_option('itw_imagelink', $imagelink);
+															
 								$postcats  = $_POST['itw_postcats'];
 								update_option('itw_postcats', $postcats);
 								
 								$postauthor  = $_POST['itw_postauthor'];
 								update_option('itw_postauthor', $postauthor);
+								
+								$postformat  = $_POST['itw_postformat'];
+								update_option('itw_postformat', $postformat);
+								
+								$postdate  = $_POST['itw_post_date'];
+								update_option('itw_post_date', $postdate);
 								
 								$customtitle  = $_POST['itw_customtitle'];
 								update_option('itw_customtitle', $customtitle);
@@ -544,9 +902,18 @@ if (!class_exists("instagrate_to_wordpress")) {
 								$customtext  = $_POST['itw_customtext'];
 								update_option('itw_customtext', $customtext);
 								
+								$imagesave  = $_POST['itw_imagesave'];
+								update_option('itw_imagesave', $imagesave);
+								
+								$imagefeat  = $_POST['itw_imagefeat'];
+								update_option('itw_imagefeat', $imagefeat);
+								
 								
 								$pluginlink  = $_POST['itw_pluginlink'];
 								update_option('itw_pluginlink', $pluginlink);
+								
+								$debugmode  = $_POST['itw_debugmode'];
+								update_option('itw_debugmode', $debugmode);
 									
 								?>
 								
@@ -564,12 +931,20 @@ if (!class_exists("instagrate_to_wordpress")) {
 								//echo $manuallstid;
 								$imagesize = get_option('itw_imagesize');
 								$imageclass = get_option('itw_imageclass');
+								$imagelink = get_option('itw_imagelink');
 								//$customposttype = get_option('itw_customposttype');
 								$postcats = get_option('itw_postcats');
 								$postauthor = get_option('itw_postauthor');
+								$postformat = get_option('itw_postformat');
+								$postdate =  get_option('itw_post_date');
 								$customtitle = get_option('itw_customtitle');
 								$customtext = get_option('itw_customtext');
 								$pluginlink = get_option('itw_pluginlink');
+								$imagesave = get_option('itw_imagesave');
+								$imagefeat = get_option('itw_imagefeat');
+										
+								$debugmode = get_option('itw_debugmode');
+								
 								
 							}
 							
@@ -618,7 +993,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 					<div class="itw_issue">
 						<p>
 						This plugin is a newer version of <b>InstaPost Press</b> which has been discontinued.</p>
-						<p>Please deactivate and delete <b>InstaPost Press</b> <a href="<?php echo pluginsURL().'#instapost-press' ?>">here</a>.
+						<p>Please deactivate and delete <b>InstaPost Press</b> <a href="<?php echo itw_pluginsURL().'#instapost-press' ?>">here</a>.
 						</p>
 						<p>	Once done you can configure the settings of this plugin and begin to use it!				
 						</p>
@@ -699,7 +1074,7 @@ logout/" width="0" height="0"></iframe>
 										foreach($feed->data as $item):
 										
 										$title = (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING):"");
-										$title = truncateString($title,80);
+										$title = itw_truncateString($title,80);
 										$id = $item->id;
 										
 										$selected = '';					
@@ -723,42 +1098,27 @@ logout/" width="0" height="0"></iframe>
 										<p><label class="textinput">Image Size:</label><input type="text" name="itw_imagesize" value="<?php echo $imagesize; ?>" ></p>
 										
 										<p><label class="textinput">Image CSS Class:</label><input type="text" name="itw_imageclass" value="<?php echo $imageclass; ?>" ></p>
-										
-										<!--<p><label class="textinput">Post Type:</label>-->
-										<?php 
-										/*
-										$args=array(
-													  'public'   => true,
-													  '_builtin' => true
-													); 
-										$output = 'names'; 
-										$operator = 'and';
-										$post_types=get_post_types($args,$output,$operator); 
-										
-										if (isset($_POST['itw_customposttype']))
-										{
-										$customposttype = $_POST['itw_customposttype'];
-										}
-										
-										foreach($post_types as $post_type):
-										
-										$selected = '';
-										if ( $customposttype  == $post_type ) {
-											$selected = "selected='selected'"; 
-										  }
-										 								
-										$options_pt[] = "<option value='{$post_type}' $selected >{$post_type}</option>";
-										
-										endforeach;
-										*/
-										?>
-										<!--
-										<select name="itw_customposttype">
-										<?php //echo implode("\n", $options_pt); ?>
-										</select>
+							
+										<p><input type="checkbox" name="itw_imagelink" <?php if ($imagelink ==true) { echo 'checked="checked"'; } ?> /> Wrap Image in Link to Image
 										</p>
-										-->
-						
+										
+										<p class="itw_info">Configure how the image is stored and presented</p>
+										
+										<p><label class="textinput">Select Image Saving:</label>
+											<select name="itw_imagesave">  
+												<option <?php if ($imagesave == 'link') { echo 'selected="selected"'; } ?> value="link">Link to Instagram Image</option>
+												<option <?php if ($imagesave == 'save') { echo 'selected="selected"'; } ?> value="save">Save Image to Media Library</option>
+											</select>  
+										 </p>
+										 
+										 <p><label class="textinput">Featured Image Config:</label>
+											<select name="itw_imagefeat">  
+												<option <?php if ($imagefeat == 'nofeat') { echo 'selected="selected"'; } ?> value="nofeat">No Featured Image</option>
+												<option <?php if ($imagefeat == 'featand') { echo 'selected="selected"'; } ?> value="featand">Featured and Post Image</option>
+												<option <?php if ($imagefeat == 'featonly') { echo 'selected="selected"'; } ?> value="featonly">Featured Only</option>
+											</select>  
+										 </p>
+										
 										<p><label class="textinput">Post Category:</label>
 						
 										 <?php $args = array(
@@ -785,24 +1145,88 @@ logout/" width="0" height="0"></iframe>
 										); 
 										 wp_dropdown_users( $args ); ?> </p>
 										 
+										<p><label class="textinput">Post Format:</label> 
+										<?php 
+										$output .= '<select class="pvw-input" name="itw_postformat">';
+		
+										if ( current_theme_supports( 'post-formats' ) ) {
+											
+											$post_formats = get_theme_support( 'post-formats' );
+											if ( is_array( $post_formats[0] ) ) {
+										
+												$output .= '<option value="0">Standard</option>';
+												$select_value = $postformat;
+												 
+												foreach ($post_formats[0] as $option) {
+													
+													$selected = '';
+													
+													 if($select_value != '') {
+														 if ( $select_value == $option) { $selected = ' selected="selected"';} 
+													 } else {
+														 if ( isset($value['std']) )
+															 if ($value['std'] == $option) { $selected = ' selected="selected"'; }
+													 }
+													  
+													 $output .= '<option'. $selected .'>';
+													 $output .= $option;
+													 $output .= '</option>';
+												 
+												 } 
+												 
+											
+											}
+											
+											else
+											{
+											
+												$output .= '<option>';
+												$output .= 'Standard';
+												$output .= '</option>';
+										
+											}
+										 
+										}
+										else
+										{
+											
+											$output .= '<option>';
+											$output .= 'Standard';
+											$output .= '</option>';
+										
+										}
+										
+										$output .= '</select></p>'; 
+										 
+										echo $output; 
+										?> 
+										 
+										 <p><label class="textinput">Post Date:</label>
+											<select name="itw_post_date">  
+												<option <?php if ($postdate == 'now') { echo 'selected="selected"'; } ?> value="now">Date at Posting</option>
+												<option <?php if ($postdate == 'instagram') { echo 'selected="selected"'; } ?> value="instagram">Instagram Image Created Date</option>
+											</select>  
+										 </p>
+										 
 										 <p class="itw_info">If the below custom text fields are left blank, only the Instagram text and image will be used in your post. To position the Instagram data with your custom text use the syntax %%title%% and %%image%%. The %%image%% text cannot be used in the Custom Title Text, and if it doesn't appear in the Body Text the Image will appear at the end of the post body.</p>
 										<p><label class="textinput">Custom Title Text:</label><input type="text" class="body_title" name="itw_customtitle" value="<?php echo $customtitle; ?>" > <small>eg. %%title%% - from Instagram</small></p>
 										
-										<p><label class="textinput">Custom Body Text:</label><textarea class="body_text" name="itw_customtext" ><?php echo $customtext; ?></textarea> <small>eg. Check out this new image %%image%% from Instagram</small></p>
+										<p><label class="textinput">Custom Body Text:</label><textarea class="body_text" rows="10" name="itw_customtext" ><?php echo $customtext; ?></textarea> <small>eg. Check out this new image %%image%% from Instagram</small></p>
 										 
 										<h4>Plugin Link</h4>
 									
 										<p class="itw_info">This will place a small link for the plugin at the bottom of the post content, eg. <small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small> </p>
-										<p>
-										
-										
-										<input type="checkbox" name="itw_pluginlink" <?php if ($pluginlink ==true) { echo 'checked="checked"'; } ?> /> Show plugin link 
+										<p><input type="checkbox" name="itw_pluginlink" <?php if ($pluginlink ==true) { echo 'checked="checked"'; } ?> /> Show plugin link 
 										 </p>
-										<p>
-										</p>
-									
 										
-											<p class="submit">
+										<h4>Debug Mode</h4>
+									
+										<p class="itw_info">This is off by default and should only be turned on if you have a problem with the plugin and have contacted us via the <a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum.</a>
+										We will as you to send us the debug.txt file it creates in the plugin folder.</p>
+										<p><input type="checkbox" name="itw_debugmode" <?php if ($debugmode ==true) { echo 'checked="checked"'; } ?> /> Enable Debug Mode 
+										 </p>
+										
+										<p class="submit">
 								<input type="submit" class="button-primary" name="Submit" value="<?php _e('Update Options', 'ipp_trdom' ) ?>" />
 							
 								</p>
@@ -850,7 +1274,7 @@ logout/" width="0" height="0"></iframe>
 											
 											<?php foreach($feed->data as $item): ?>
 											<?php $title = (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING):"");
-												  $title = truncateString($title,80);
+												  $title = itw_truncateString($title,80);
 										
 										?>
 												
@@ -896,9 +1320,12 @@ logout/" width="0" height="0"></iframe>
 				
 				
 					<div id="links">
-						We hope you enjoy the plugin | <a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum</a> |
+						<b>Instagrate to WordPress</b> | We hope you enjoy the plugin | 
+						<a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum</a> |
+						<a title="Donate" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R6BY3QARRQP2Q">Donate</a> |
 						<a title="Follow on Twitter" href="http://twitter.com/#!/polevaultweb">@polevaultweb</a> |
 						<a href="http://www.polevaultweb.com/plugins/instagrate-to-wordpress/">Plugin Site</a> |
+						<a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/" title="Rate the Plugin on WordPress">Rate the Plugin ★★★★★</a> |
 						<a href="http://led24.de/iconset/">16px Icons</a>
 					</div>
 					
