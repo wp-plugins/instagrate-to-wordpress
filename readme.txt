@@ -62,6 +62,10 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 
 == Changelog ==
 
+= 1.1.1 =
+
+* Small release to fix readme.txt issues and links.
+
 = 1.1.0 =
 
 * Bug fix - resolved multiple posting issues. The plugin will only post an image from Instagram 2 minutes after creation to stop any duplicates coming through on the API. Many thanks to testers [@onlineheld](http://www.twitter.com/onlineheld), [@travelhappy](http://www.twitter.com/travelhappy), Tyler Conlon
