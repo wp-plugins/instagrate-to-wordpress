@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.1.1
+Version: 1.1.2
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.1.1');
+define( 'ITW_PLUGIN_VERSION', '1.1.2');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -57,9 +57,14 @@ if (!class_exists("instagrate_to_wordpress")) {
 			add_action('admin_init', get_class()  . '::upgrade_check');
 			//register uninstall hook
 			register_uninstall_hook(__FILE__, 'plugin_uninstall');
-						
+			
+			//add notices for prechecks
+			add_action('admin_notices', get_class()  . '::plugin_admin_notice');
+			
 			//register the listener function
 			add_action( 'template_redirect', get_class()  . '::auto_post_images');	
+			
+			
 	 	
 		}
 		
@@ -108,8 +113,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$saved_version = get_option( 'itw_version' );
 			$current_version = isset($saved_version) ? $saved_version : 0;
 
-			if ( version_compare( $current_version, ITW_PLUGIN_VERSION, '==' ) )
+			if ( version_compare( $current_version, ITW_PLUGIN_VERSION, '==' ) ) {
 				return;
+			}
 				
 			//specific version checks on upgrade
 			if ( version_compare( $current_version, '1.1.0', '<' ) ) {
@@ -130,7 +136,18 @@ if (!class_exists("instagrate_to_wordpress")) {
 				update_option('itw_postformat', 'Standard');	
 				//make sure the processing transient is set and reset for new and beta testers
 				set_transient('itw_posting' ,'done', 60*5);
-			}	
+			}
+			
+			//specific version checks on upgrade
+			if ( version_compare( $current_version, '1.1.1', '<' ) ) {
+			
+				//new defaults
+				
+				//set post status
+				update_option('itw_poststatus', 'publish');
+			
+			}
+			
 							
 			//update the database version
 			update_option( 'itw_version', ITW_PLUGIN_VERSION );
@@ -160,12 +177,33 @@ if (!class_exists("instagrate_to_wordpress")) {
 			delete_option('itw_imagesave');
 			delete_option('itw_imagefeat');
 			delete_option('itw_debugmode');
+			delete_option('itw_poststatus');
 			
 			//remove hooks
 			remove_action( 'template_redirect', get_class()  . '::auto_post_images');
 		
 		}
+		
+		/* Display check for user to make sure a blog page is selected */
+		public static function plugin_admin_notice(){
 			
+			if (isset($_GET['page']) && $_GET['page'] == ITW_PLUGIN_SETTINGS) {
+				
+				if ('page' == get_option('show_on_front')) {
+			
+					if ( 0 == get_option('page_for_posts') ) {
+					
+						echo '<div class="updated">
+								<p>You must select a page to display your posts in <a href="'.home_url().'/wp-admin/options-reading.php">Settings -> Reading</a></p>
+							</div>';
+					
+					}
+ 
+				}	
+					 
+			}
+		}
+
 		/* Plugin debug functions */
 		public static function plugin_debug_write($string) {
 		
@@ -217,6 +255,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 				
 				//set post format
 				update_option('itw_postformat', 'Standard');
+				
+				//set post status
+				update_option('itw_poststatus', 'publish');
 						
 				//Set author
 				$current_user =  wp_get_current_user();
@@ -259,6 +300,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 		/* Instagram post feed array */
 		public static function get_images() {
 		
+			$access_token = false;
+			
 			if(!$access_token ):
 			
 				//get current last id
@@ -298,6 +341,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 						endforeach;
 					
 					endif;
+					
+					$orderByDate = array();
 					
 					//order array by earliest image
 					foreach ($images as $key => $row) {
@@ -445,14 +490,18 @@ if (!class_exists("instagrate_to_wordpress")) {
 									if ($date_check == 'instagram') {
 									
 										$post_date = $images[$i]["created"];
+										$post_date = date('Y-m-d H:i:s',$post_date);
+										$post_date_gmt  = $post_date;
 									
 									} else {
 									
-										$post_date = time() - (($count-$i) * 20);
+										$post_date_gmt = date('Y-m-d H:i:s',current_time('timestamp',1) - (($count-$i) * 20));
+										$post_date = date('Y-m-d H:i:s',current_time('timestamp',0) - (($count-$i) * 20));
+	
 									}
 									
 									//post new images to wordpress
-									$debug .= self::blog_post($title,$image, $post_date);
+									$debug .= self::blog_post($title,$image, $post_date,$post_date_gmt);
 									
 									
 
@@ -570,7 +619,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		}
 		
 		/* Attach an image to the media library */
-		function attach_image($url) {
+		function attach_image($url, $postid) {
 		
 			require_once(ABSPATH . "wp-admin" . '/includes/image.php');
 			require_once(ABSPATH . "wp-admin" . '/includes/file.php');
@@ -589,7 +638,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 				return $tmp;
 			}
 
-			$id = media_handle_sideload( $file_array, 0 );
+			$id = media_handle_sideload( $file_array, $postid );
 			// Check for handle sideload errors.
 		 
 			if ( is_wp_error( $id ) ) {
@@ -613,7 +662,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		}
 		
 		/* Posting to WordPress */
-		public static function blog_post($post_title, $post_image,$post_date) {
+		public static function blog_post($post_title, $post_image,$post_date, $post_date_gmt ) {
 
 			
 			$debug .= "------------START Blog_post ". Date( DATE_RFC822 ) . "\n";
@@ -631,7 +680,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$pluginlink = get_option('itw_pluginlink');
 			$imagelink = get_option('itw_imagelink');
 			$imagesave = get_option('itw_imagesave');
-			$imagefeat = get_option('itw_imagefeat');				
+			$imagefeat = get_option('itw_imagefeat');	
+			$poststatus = get_option('itw_poststatus');			
 	
 			//Image class
 			if ($imageclass != '')
@@ -663,6 +713,21 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 			}
 			
+				// Create post object
+		  	$my_post = array(
+				 'post_title' => $post_title,
+				 'post_content' => '',
+				 'post_author' => $postauthor,
+				 'post_category' => array($postcats),
+				 'post_status' => $poststatus,
+				 'post_date' => $post_date, //The time post was made.
+				 'post_date_gmt' =>  $post_date_gmt //[ Y-m-d H:i:s ] //The time post was made, in GMT.
+		 	 );
+			 
+			 	 
+			// Insert the post into the database
+		  	$new_post = wp_insert_post( $my_post );
+			
 			//image settings
 			if ($imagesave == 'link') {
 				//link to instagram image
@@ -673,7 +738,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 				//put image from instagram into wordpress media library and link to it.
 				$post_image = self::strip_querysting($post_image);
 				//load into media library
-				$attach_id = self::attach_image($post_image);
+				$attach_id = self::attach_image($post_image,$new_post);
 				//get new shot image url from media attachment
 				$post_image = wp_get_attachment_url($attach_id);
 				
@@ -740,24 +805,19 @@ if (!class_exists("instagrate_to_wordpress")) {
 			}
 			
 			$post_body = "<!-- This post is created by Instagrate to WordPress, a WordPress Plugin by polevaultweb.com - http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ -->".$post_body;
-
-			// Create post object
-		  	$my_post = array(
-				 'post_title' => $post_title,
-				 'post_content' => $post_body,
-				 'post_status' => 'publish',
-				 'post_author' => $postauthor,
-				 'post_category' => array($postcats),
-				 'post_status' => 'publish',
-				 'post_date' => date('Y-m-d H:i:s',$post_date), //The time post was made.
-				 'post_date_gmt' =>  date('Y-m-d H:i:s',$post_date) //[ Y-m-d H:i:s ] //The time post was made, in GMT.
-		 	 );
-		
+					
 				
 			$debug .= "--------------START wp_insert_post ". Date( DATE_RFC822 ) . "\n";
 			
-			// Insert the post into the database
-		  	$new_post = wp_insert_post( $my_post );
+			
+			// Update post with content
+			$update_post = array();
+			$update_post['ID'] = $new_post;
+			$update_post['post_status'] = $poststatus;
+			$update_post['post_content'] = $post_body;
+
+			// Update the post into the database
+			wp_update_post( $update_post );
 			
 			//apply format if not standard
 			if ($postformat != 'Standard') {
@@ -765,12 +825,14 @@ if (!class_exists("instagrate_to_wordpress")) {
 			}
 			
 			//apply featured image if needed
-			if ($imagefeat != 'nofeat') {
+			if ($imagefeat != 'nofeat' && $imagesave != 'link') {
 			
 				add_post_meta($new_post, '_thumbnail_id', $attach_id);
 				
 			}
 			
+				
+					
 			$debug .= "--------------END wp_insert_post ". Date( DATE_RFC822 ) . "\n";
 			
 
@@ -787,7 +849,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		public static function settings_page() { 
 		
 		
-			if($_POST['itw_logout'] == 'Y'){
+			if(isset($_POST['itw_logout']) && $_POST['itw_logout'] == 'Y'){
 							
 					self::log_out();
 							
@@ -804,7 +866,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 			}
 			else {
 							
-				$instagram = new itw_Instagram(CLIENT_ID, CLIENT_SECRET,$access_token);
+				$instagram = new itw_Instagram(CLIENT_ID, CLIENT_SECRET,null);
+				$msg_class = 'itw_connected';
 			
 				//session_cache_limiter( TRUE );			
 				if (isset($_SESSION['access_token'])) {
@@ -868,7 +931,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 						if($feed->meta->code == 200): 
 						//var_dump($feed);
 						
-							if($_POST['itw_hidden'] == 'Y') {
+							if(isset($_POST['itw_hidden']) && $_POST['itw_hidden'] == 'Y') {
 														
 								update_option('itw_configured', 'Installed');
 								
@@ -914,6 +977,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 								
 								$debugmode  = $_POST['itw_debugmode'];
 								update_option('itw_debugmode', $debugmode);
+								
+								$poststatus  = $_POST['itw_poststatus'];
+								update_option('itw_poststatus', $poststatus);
 									
 								?>
 								
@@ -944,6 +1010,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 								$imagefeat = get_option('itw_imagefeat');
 										
 								$debugmode = get_option('itw_debugmode');
+								$poststatus = get_option('itw_poststatus');
 								
 								
 							}
@@ -1147,7 +1214,7 @@ logout/" width="0" height="0"></iframe>
 										 
 										<p><label class="textinput">Post Format:</label> 
 										<?php 
-										$output .= '<select class="pvw-input" name="itw_postformat">';
+										$output = '<select class="pvw-input" name="itw_postformat">';
 		
 										if ( current_theme_supports( 'post-formats' ) ) {
 											
@@ -1205,6 +1272,13 @@ logout/" width="0" height="0"></iframe>
 											<select name="itw_post_date">  
 												<option <?php if ($postdate == 'now') { echo 'selected="selected"'; } ?> value="now">Date at Posting</option>
 												<option <?php if ($postdate == 'instagram') { echo 'selected="selected"'; } ?> value="instagram">Instagram Image Created Date</option>
+											</select>  
+										 </p>
+										 
+										  <p><label class="textinput">Post Status:</label>
+											<select name="itw_poststatus">  
+												<option <?php if ($poststatus == 'publish') { echo 'selected="selected"'; } ?> value="publish">Publish</option>
+												<option <?php if ($poststatus == 'draft') { echo 'selected="selected"'; } ?> value="draft">Draft</option>
 											</select>  
 										 </p>
 										 

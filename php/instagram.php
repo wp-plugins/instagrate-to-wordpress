@@ -120,9 +120,9 @@ class InstagramApiError extends Exception {}
  function itw_curPageURL() {
 		 
 		 $pageURL = 'http';
-		 if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
+		 if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
 		 $pageURL .= "://";
-		 if ($_SERVER["SERVER_PORT"] != "80") {
+		 if ($_SERVER["SERVER_PORT"] != "80" && $_SERVER['HTTP_HOST'] != 'localhost:8888' ) {
 		  $pageURL .= $_SERVER["HTTP_HOST"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
 		 } else {
 		  $pageURL .= $_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"];

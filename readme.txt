@@ -6,7 +6,7 @@ Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 
 Integrate your Instagram images and your WordPress blog with automatic posting of new images into blog posts.
 
@@ -35,6 +35,7 @@ Full list of features:
 	*	Image size.
 	*	Image CSS class.
 	* 	NEW 1.1.0: Post Format.
+	*	**NEW 1.1.2**: Post Status. You can set posts as published or as draft.
 	*	Post Category (selected from dropdown of available categories).
 	*	Post Author (selected from dropdown of available authors).
 	* 	Plugin link at the end of the post body text. Can be turned off.
@@ -61,6 +62,16 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 **Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 == Changelog ==
+
+= 1.1.2 =
+
+* New feature - You can set the default post status for posts created, eg. set to 'publish' or 'draft'. Default set to 'publish'.
+* New feature - Alert if blog has a static page for the homepage but doesn't have a page selected to display posts. This is needed for the plugin to work.
+* Bug fix - Warning: array_multisort() [function.array-multisort] error fixed.
+* Bug fix - Images that are added to media library are now automatically attached to the post in the media library.
+* Bug fix - Images posted with date at time of posting now use the timezone defined in the blog's general settings.
+* Bug fix - HTTPS fix - thanks [@alexbilbie](https://twitter.com/alexbilbie).
+* Bug fix - Authenticating when using localhost:8888.
 
 = 1.1.1 =
 
