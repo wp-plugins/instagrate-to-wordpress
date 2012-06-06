@@ -6,11 +6,13 @@ Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 
 Integrate your Instagram images and your WordPress blog with automatic posting of new images into blog posts.
 
 == Description ==
+
+**[Instagrate Pro](http://www.instagrate.co.uk/)** The pro version of this plugin with many more features can be found here - [Instagrate Pro](http://www.instagrate.co.uk/)
 
 The Instagrate to WordPress plugin allows you to automatically integrate your Instagram account with your WordPress blog.  
 
@@ -35,14 +37,16 @@ Full list of features:
 	*	Image size.
 	*	Image CSS class.
 	* 	NEW 1.1.0: Post Format.
-	*	**NEW 1.1.2**: Post Status. You can set posts as published or as draft.
+	*	NEW 1.1.2: Post Status. You can set posts as published or as draft.
 	*	Post Category (selected from dropdown of available categories).
 	*	Post Author (selected from dropdown of available authors).
 	* 	Plugin link at the end of the post body text. Can be turned off.
 	*	NEW 1.1.0: Debug mode setting to enable us to troubleshoot further problems with the plugin. Off by default.
-	
+	*	**NEW 1.1.3**: You can now set the post type, eg. post, page or custom post types, where the image will be created in. Default is Post.
 
 If you have any issues or feature requests please visit and use the [Support Forum](http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/)
+
+**[Instagrate Pro](http://www.instagrate.co.uk/)** The pro version of this plugin with many more features can be found here - [Instagrate Pro](http://www.instagrate.co.uk/)
 
 [Plugin Page](http://www.polevaultweb.com/plugins/instagrate-to-wordpress/) | [@polevaultweb](http://www.twitter.com/polevaultweb/) | [Donate with PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R6BY3QARRQP2Q)
 
@@ -62,6 +66,11 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 **Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 == Changelog ==
+
+= 1.1.3 =
+
+* New feature - You can now set the post type, eg. post, page or custom post types, where the image will be created in. Default is Post.
+* [Instagrate Pro](http://www.instagrate.co.uk) released.
 
 = 1.1.2 =
 

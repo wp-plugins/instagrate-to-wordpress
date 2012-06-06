@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.1.2
+Version: 1.1.3
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.1.2');
+define( 'ITW_PLUGIN_VERSION', '1.1.3');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -148,6 +148,22 @@ if (!class_exists("instagrate_to_wordpress")) {
 			
 			}
 			
+			if ( version_compare( $current_version, '1.1.3', '<' ) ) {
+			
+				//new defaults
+				
+				//repair post status from last release
+				if (get_option('itw_poststatus') != 'draft') {
+				
+					update_option('itw_poststatus', 'publish');
+				
+				}
+				//post type
+				update_option('itw_posttype', 'post');
+				
+			}
+
+			
 							
 			//update the database version
 			update_option( 'itw_version', ITW_PLUGIN_VERSION );
@@ -178,6 +194,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			delete_option('itw_imagefeat');
 			delete_option('itw_debugmode');
 			delete_option('itw_poststatus');
+			delete_option('itw_posttype');
 			
 			//remove hooks
 			remove_action( 'template_redirect', get_class()  . '::auto_post_images');
@@ -258,6 +275,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 				
 				//set post status
 				update_option('itw_poststatus', 'publish');
+				
+				//set post type
+				update_option('itw_posttype', 'post');
 						
 				//Set author
 				$current_user =  wp_get_current_user();
@@ -681,7 +701,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$imagelink = get_option('itw_imagelink');
 			$imagesave = get_option('itw_imagesave');
 			$imagefeat = get_option('itw_imagefeat');	
-			$poststatus = get_option('itw_poststatus');			
+			$poststatus = get_option('itw_poststatus');	
+			$posttype = get_option('itw_posttype');			
 	
 			//Image class
 			if ($imageclass != '')
@@ -720,6 +741,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 				 'post_author' => $postauthor,
 				 'post_category' => array($postcats),
 				 'post_status' => $poststatus,
+				 'post_type' => $posttype,
 				 'post_date' => $post_date, //The time post was made.
 				 'post_date_gmt' =>  $post_date_gmt //[ Y-m-d H:i:s ] //The time post was made, in GMT.
 		 	 );
@@ -980,6 +1002,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 								
 								$poststatus  = $_POST['itw_poststatus'];
 								update_option('itw_poststatus', $poststatus);
+								
+								$posttype  = $_POST['itw_posttype'];
+								update_option('itw_posttype', $posttype);
 									
 								?>
 								
@@ -1011,6 +1036,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 										
 								$debugmode = get_option('itw_debugmode');
 								$poststatus = get_option('itw_poststatus');
+								$posttype = get_option('itw_posttype');
 								
 								
 							}
@@ -1055,6 +1081,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 				<div class="h2_left">
 					<h2 class="instagrate_logo">Instagrate to WordPress</h2>
 				</div>
+				
 				<?php if(isset($oldplugintest)): ?>
 					<div class="clear"></div>
 					<div class="itw_issue">
@@ -1099,6 +1126,7 @@ logout/" width="0" height="0"></iframe>
 									 
 						</div>
 					</div>
+					<p class="itw_info">There is a pro version of this plugin now available to buy <a href="http://www.instagrate.co.uk">Instagrate Pro</a></p>
 					<div class="clear"></div>
 				
 					<!-- BEGIN ipp_content_left -->
@@ -1282,6 +1310,40 @@ logout/" width="0" height="0"></iframe>
 											</select>  
 										 </p>
 										 
+										 <p><label class="textinput">Custom Post Type:</label>
+										<?php $output = '<select class="pvw-input"  name="itw_posttype">';
+
+												// prepare post type filter
+												$args = array (		'public'  => true,
+																	'show_ui' => true
+												);
+												$posttypes  = get_post_types( $args, 'objects' );
+												
+												$select_value = $posttype;
+												
+												foreach ( $posttypes as $pt ) :
+							
+													$selected = '';
+								
+													if($select_value != '') {
+														if ( $select_value ==  esc_attr( $pt->name )) { $selected = ' selected="selected"';} 
+													} 
+													
+													$output .= '<option value="' . esc_attr( $pt->name ) . '"' . $selected . '>';
+													$output .= $pt->labels->singular_name;
+													$output .= '</option>';
+												endforeach;
+							
+											$output .= '</select>'; 
+											echo $output; 
+							 ?> 
+										 
+										 
+										 </p>
+										 
+										 
+										 
+										 
 										 <p class="itw_info">If the below custom text fields are left blank, only the Instagram text and image will be used in your post. To position the Instagram data with your custom text use the syntax %%title%% and %%image%%. The %%image%% text cannot be used in the Custom Title Text, and if it doesn't appear in the Body Text the Image will appear at the end of the post body.</p>
 										<p><label class="textinput">Custom Title Text:</label><input type="text" class="body_title" name="itw_customtitle" value="<?php echo $customtitle; ?>" > <small>eg. %%title%% - from Instagram</small></p>
 										
@@ -1395,6 +1457,7 @@ logout/" width="0" height="0"></iframe>
 				
 					<div id="links">
 						<b>Instagrate to WordPress</b> | We hope you enjoy the plugin | 
+						<a href="http://www.instagrate.co.uk/">Instagrate Pro - more features</a> |
 						<a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum</a> |
 						<a title="Donate" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R6BY3QARRQP2Q">Donate</a> |
 						<a title="Follow on Twitter" href="http://twitter.com/#!/polevaultweb">@polevaultweb</a> |
