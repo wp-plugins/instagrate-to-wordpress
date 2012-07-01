@@ -70,6 +70,7 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 = 1.1.4 =
 
 * New feature - Every post with an image stores the Instagram image id in the post meta. This will help stop duplicate posts. if you want to repost an image the original post needs to be deleted and removed from trash.
+* Improvement - Default post title for images that have no title. Can be overridden by custom post title.
 * Improvement - New method of handling Instagram authorisation to fix those users in the infinite login loop.
 * Bug fix - Strips emoticons and other special characters from the Instagram image title so it won't break the post title.
 * Bug fix - Better handling of Instagram API downtime.
