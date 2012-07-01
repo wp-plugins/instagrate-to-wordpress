@@ -1,9 +1,9 @@
 <?php
 
 
-define('CLIENT_ID', '4d11a3c2189949399de3da39b36a18c4');
-define('CLIENT_SECRET', '4057d25e97d748ffa2915c6ceacbf6f4');
-define('REDIRECT_URI', 'http://plugins.polevaultweb.com/oauth.php');
+define('CLIENT_ID', '483189bb620d4cfb8cd13b5a15e9f3d4');
+define('CLIENT_SECRET', 'ae7c0d740ddb455fb4fa1f93e33d9b23');
+define('REDIRECT_URI', 'http://plugins.polevaultweb.com/oauth_pro.php');
 
 class itw_Instagram {
     private $apiBase = 'https://api.instagram.com/';
@@ -78,7 +78,17 @@ class itw_Instagram {
         
         curl_setopt($c, CURLOPT_RETURNTRANSFER, True);
 		
+       
+        
+        
         $r = json_decode(curl_exec($c));
+        
+         //check for NULL response
+        if ( $r == null) {
+	        
+	         throw new InstagramApiError('Error: Instagram Servers Down');
+   
+        }
         		
         // Throw an error if maybe an access token expired or wasn't right
         // or if an ID doesn't exist or something
