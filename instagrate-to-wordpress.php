@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.1.4
+Version: 1.1.5
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.1.4');
+define( 'ITW_PLUGIN_VERSION', '1.1.5');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -33,6 +33,7 @@ define( 'ITW_PLUGIN_SETTINGS', 'instagratetowordpress');
 define( 'ITW_RETURN_URI', strtolower(site_url('/').'wp-admin/options-general.php?page='.ITW_PLUGIN_SETTINGS));
 
 require_once ITW_PLUGIN_PATH.'php/instagram.php';
+require_once ITW_PLUGIN_PATH.'php/emoji.php';
 
 if (!class_exists("instagrate_to_wordpress")) {
 
@@ -362,7 +363,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 														
 										$images[] = array(
 											"id" => $item->id,
-											"title" => (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING,FILTER_FLAG_STRIP_HIGH):""),
+											"title" => (isset($item->caption->text)? self::strip_title($item->caption->text):""),
 											"image_small" => $item->images->thumbnail->url,
 											"image_middle" => $item->images->low_resolution->url,
 											"image_large" => $item->images->standard_resolution->url,
@@ -450,7 +451,20 @@ if (!class_exists("instagrate_to_wordpress")) {
 	
 		}
 
-
+		public static function strip_title($title) {
+			
+			
+			$clean = '';
+			
+			$clean = filter_var($title, FILTER_SANITIZE_STRING,FILTER_FLAG_STRIP_LOW);
+			
+			$clean = emoji_html_stripped($clean);
+			$clean = trim($clean);
+						
+			
+			return $clean;
+			
+		}
 		
 		
 		/* Main function to post Instagram images */
@@ -1353,7 +1367,8 @@ logout/" width="0" height="0"></iframe>
 										
 										foreach($feed->data as $item):
 										
-										$title = (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING,FILTER_FLAG_STRIP_HIGH ):"");
+										$title = (isset($item->caption->text)? $item->caption->text:"");
+										$title = self::strip_title($title);
 										$title = itw_truncateString($title,80);
 										$id = $item->id;
 										
@@ -1595,7 +1610,8 @@ logout/" width="0" height="0"></iframe>
 										<div class="inside">
 											
 											<?php foreach($feed->data as $item): ?>
-											<?php $title = (isset($item->caption->text)?filter_var($item->caption->text, FILTER_SANITIZE_STRING,FILTER_FLAG_STRIP_HIGH):"");
+											<?php $title = (isset($item->caption->text)? $item->caption->text:"");
+												  $title = self::strip_title($title);
 												  $title = itw_truncateString($title,80);
 										
 										?>

@@ -6,7 +6,7 @@ Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
 Tested up to: 3.4.1
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 
 Integrate your Instagram images and your WordPress blog with automatic posting of new images into blog posts.
 
@@ -19,8 +19,6 @@ The Instagrate to WordPress plugin allows you to automatically integrate your In
 No more manual embedding Instagram images into your posts, let this plugin take care of it all.
 
 Install the plugin. Log in to Instagram, pick your default WordPress post settings, and you are done. Take a photo or lots on Instagram. The next time someone visits your site, a new post will be created with your each photo from Instagram. 
-
-**Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 Full list of features:
 
@@ -43,6 +41,7 @@ Full list of features:
 	* 	Plugin link at the end of the post body text. Can be turned off.
 	*	NEW 1.1.0: Debug mode setting to enable us to troubleshoot further problems with the plugin. Off by default.
 	*	NEW 1.1.3: You can now set the post type, eg. post, page or custom post types, where the image will be created in. Default is Post.
+	*	NEW 1.1.4: Default post title for images that have no title. Can be overridden by custom post title.
 
 If you have any issues or feature requests please visit and use the [Support Forum](http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/)
 
@@ -66,6 +65,10 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 **Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 == Changelog ==
+
+= 1.1.5 =
+
+* Bug fix - The plugin now correctly strips emojis from the Image title so they don't break the WordPress post title, but leaves alone foreign characters.
 
 = 1.1.4 =
 
