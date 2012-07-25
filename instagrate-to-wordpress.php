@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.1.5
+Version: 1.1.6
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.1.5');
+define( 'ITW_PLUGIN_VERSION', '1.1.6');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -71,7 +71,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		/* Add menu item for plugin to Settings Menu */
 		public static function register_settings_menu() {  
    		  			
-   			add_options_page( 'Instagrate to WordPress', 'Instagrate to WordPress', 'read', ITW_PLUGIN_SETTINGS, get_class() . '::settings_page' );
+   			add_options_page( 'Instagrate to WordPress', 'Instagrate to WordPress', 'manage_options', ITW_PLUGIN_SETTINGS, get_class() . '::settings_page' );
 	  				
 		}
 		
