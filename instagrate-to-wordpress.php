@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.1.7
+Version: 1.1.8
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.1.7');
+define( 'ITW_PLUGIN_VERSION', '1.1.8');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -228,6 +228,15 @@ if (!class_exists("instagrate_to_wordpress")) {
 					}
  
 				}	
+				
+				/* Display check to see if cURL exists */
+				if (!function_exists('curl_init')) {
+			
+					echo '<div class="error">
+								<p>This plugin requires the cURL PHP extension to be installed.</p>
+							</div>';
+ 
+				}
 					 
 			}
 		}
@@ -1013,11 +1022,15 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$oldplugin ='instapost-press/instapost-press.php';
 			
 			
-			
+		
 			if(is_plugin_active($oldplugin))
 			{
 				$oldplugintest = 1;
 			
+			} elseif(!function_exists('curl_init')) {
+				
+				$curltest = 1;
+				
 			}
 			else {
 			
@@ -1294,7 +1307,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 						<p>	Once done you can configure the settings of this plugin and begin to use it!				
 						</p>
 					</div>
-				
+				<?php elseif(isset($curltest)): ?>
+					
 				<?php else: ?>
 				<?php if(isset($loginUrl)): ?>
 				
