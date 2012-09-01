@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.1.8
+Version: 1.2
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.1.8');
+define( 'ITW_PLUGIN_VERSION', '1.2');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -170,9 +170,13 @@ if (!class_exists("instagrate_to_wordpress")) {
 				update_option('itw_defaulttitle', 'Instagram Image');
 			
 			}
-
+			if ( version_compare( $current_version, '1.2', '<' ) ) {
 			
-							
+				//set default is_home override
+				update_option('itw_ishome', false);
+			
+			}
+
 			//update the database version
 			update_option( 'itw_version', ITW_PLUGIN_VERSION );
 		
@@ -206,6 +210,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			delete_option('itw_poststatus');
 			delete_option('itw_posttype');
 			delete_option('itw_defaulttitle');
+			delete_option('itw_ishome');
 			
 			//remove hooks
 			remove_action( 'template_redirect', get_class()  . '::auto_post_images');
@@ -273,36 +278,27 @@ if (!class_exists("instagrate_to_wordpress")) {
 			
 				
 				//update_option('itw_manuallstid', $lastid);
+				update_option('itw_ishome', false);				
 				update_option('itw_defaulttitle', 'Instagram Image');
-							
 				//Set plugin link to false
 				update_option('itw_pluginlink', false);
-				
 				//set image link to true
 				update_option('itw_imagelink', false);
-				
 				//set debug mode as off by default
 				update_option('itw_debugmode', false);
-				
 				//set image saving
 				update_option('itw_imagesave', 'link');
-				 
 				//set image featured option
 				update_option('itw_imagefeat', 'nofeat');
-				
 				//set post format
 				update_option('itw_postformat', 'Standard');
-				
 				//set post status
 				update_option('itw_poststatus', 'publish');
-				
 				//set post type
 				update_option('itw_posttype', 'post');
-						
 				//Set author
 				$current_user =  wp_get_current_user();
 				$username = $current_user->ID;
-				
 				//print $username;
 				update_option('itw_postauthor', $username);
 				
@@ -330,7 +326,6 @@ if (!class_exists("instagrate_to_wordpress")) {
 										
 				}
 				update_option('itw_postcats', $cat);
-				
 				//set post date 
 				update_option('itw_post_date','now');
 				
@@ -483,6 +478,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			//check if date is Instagram or not
 			$date_check = get_option('itw_post_date');
 			$debugmode = get_option('itw_debugmode');
+			$is_home = get_option('itw_ishome');
 			
 			if ($date_check == false) {$date_check = 'now';  }
 			
@@ -497,10 +493,13 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$debug .= "------------------------------------------------------------------------------------------------------------------------------------------\n";
 			
 			//check if page is blog page - only run
-			if (is_home()) {
+			if ($is_home == true || ( $is_home == false && is_home())) {
+			//if (is_home()) {
 			
-				
-				$debug .= "--START Blog is_home() check TRUE ". Date( DATE_RFC822 ) . "\n";
+				$ishomecheck = ($is_home ? "set" : "not set");
+				$ishome = (is_home() ? 'TRUE' : 'FALSE');
+				$debug .= "--START Blog is_home() check ". $ishome ." ". Date( DATE_RFC822 ) . "\n";
+				$debug .= "--CHECK is_home() override ". $ishomecheck ." ". Date( DATE_RFC822 ) . "\n";
 				$debug .= "--START Auto post function START ". Date( DATE_RFC822 ) . "\n";
 				$debug .= "--Marker: ". get_transient( 'itw_posting' )  . "\n";
 			
@@ -864,7 +863,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 				 'post_content' => '',
 				 'post_author' => $postauthor,
 				 'post_category' => array($postcats),
-				 'post_status' => $poststatus,
+				 'post_status' => 'draft', //$poststatus,
 				 'post_type' => $posttype,
 				 'post_date' => $post_date, //The time post was made.
 				 'post_date_gmt' =>  $post_date_gmt //[ Y-m-d H:i:s ] //The time post was made, in GMT.
@@ -1193,6 +1192,9 @@ if (!class_exists("instagrate_to_wordpress")) {
 										$defaulttitle  = $_POST['itw_defaulttitle'];
 										update_option('itw_defaulttitle', $defaulttitle);
 										
+										$is_home  = $_POST['itw_ishome'];
+										update_option('itw_ishome', $is_home);
+										
 											
 										?>
 										
@@ -1224,7 +1226,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 										$poststatus = get_option('itw_poststatus');
 										$posttype = get_option('itw_posttype');
 										$defaulttitle = get_option('itw_defaulttitle');
-
+										$is_home = get_option('itw_ishome');
 										
 										
 									}
@@ -1559,14 +1561,19 @@ logout/" width="0" height="0"></iframe>
 										 </p>
 										 
 										 
-										 <p class="itw_info">Set the default post title if an Instragram image has no title. Can be overridden by the Custom Title Text.</p>
+										 <p class="itw_info">Set the default post title if an Instagram image has no title. Can be overridden by the Custom Title Text.</p>
 										<p><label class="textinput">Default Title Text:</label><input type="text" class="body_title" name="itw_defaulttitle" value="<?php echo $defaulttitle; ?>" > <small>eg. Instagram Image</small></p>
 										 
 										 <p class="itw_info">If the below custom text fields are left blank, only the Instagram text and image will be used in your post. To position the Instagram data with your custom text use the syntax %%title%% and %%image%%. The %%image%% text cannot be used in the Custom Title Text, and if it doesn't appear in the Body Text the Image will appear at the end of the post body.</p>
 										<p><label class="textinput">Custom Title Text:</label><input type="text" class="body_title" name="itw_customtitle" value="<?php echo $customtitle; ?>" > <small>eg. %%title%% - from Instagram</small></p>
 										
 										<p><label class="textinput">Custom Body Text:</label><textarea class="body_text" rows="10" name="itw_customtext" ><?php echo stripslashes($customtext); ?></textarea> <small>eg. Check out this new image %%image%% from Instagram</small></p>
-										 
+										
+										<h4>Advanced Settings</h4>
+									
+										<p class="itw_info">This is an advanced setting for sites using themes that do not have a separate page dedicated to posts. If in doubt do not switch on.</p>
+										<p><input type="checkbox" name="itw_ishome" <?php if ($is_home == true) { echo 'checked="checked"'; } ?> /> Check this to bypass the is_home() check when the plugin auto posts. </p>
+										  
 										<h4>Plugin Link</h4>
 									
 										<p class="itw_info">This will place a small link for the plugin at the bottom of the post content, eg. <small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small> </p>
