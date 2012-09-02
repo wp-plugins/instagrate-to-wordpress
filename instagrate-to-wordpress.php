@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.2
+Version: 1.2.1
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.2');
+define( 'ITW_PLUGIN_VERSION', '1.2.1');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -969,16 +969,6 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$debug .= "--------------START wp_insert_post ". Date( DATE_RFC822 ) . "\n";
 			
 			
-			// Update post with content
-			$update_post = array();
-			$update_post['ID'] = $new_post;
-			$update_post['post_status'] = $poststatus;
-			$update_post['post_content'] = $post_body;
-
-			// Update the post into the database
-			wp_update_post( $update_post );
-			
-			
 			//apply custom meta to make sure the image won't get duplicated 
 			add_post_meta($new_post,'instagrate_id',$image_id);
 			
@@ -993,6 +983,15 @@ if (!class_exists("instagrate_to_wordpress")) {
 				add_post_meta($new_post, '_thumbnail_id', $attach_id);
 				
 			}
+			
+			// Update post with content
+			$update_post = array();
+			$update_post['ID'] = $new_post;
+			$update_post['post_status'] = $poststatus;
+			$update_post['post_content'] = $post_body;
+
+			// Update the post into the database
+			wp_update_post( $update_post );
 			
 				
 					
