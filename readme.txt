@@ -6,7 +6,7 @@ Author URI: http://www.polevaultweb.com/
 Tags: instagram, posts, integration, automatic, post, wordpress, posting, images
 Requires at least: 3.0
 Tested up to: 3.4.1
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 
 Integrate your Instagram images and your WordPress blog with automatic posting of new images into blog posts.
 
@@ -71,6 +71,13 @@ If you have to upgrade manually simply repeat the installation steps and re-enab
 **Please note this plugin supersedes InstaPost Press, which has been discontinued because of a naming conflict. If you installed this plugin you will need to deactivate it before you can use this new plugin. Instagrate to WordPress has new features and will continue to be developed**
 
 == Changelog ==
+
+= 1.2.2 = 
+
+* WordPress 3.5 compatible
+* Fix - Media attaching images handled better
+* Improvement - Plugin posts on a category page so is_home() override isn't needed.
+
 
 = 1.2.1 = 
 

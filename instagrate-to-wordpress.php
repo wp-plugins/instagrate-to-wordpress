@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.2.1
+Version: 1.2.2
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.2.1');
+define( 'ITW_PLUGIN_VERSION', '1.2.2');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -477,8 +477,8 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 			//check if date is Instagram or not
 			$date_check = get_option('itw_post_date');
-			$debugmode = get_option('itw_debugmode');
-			$is_home = get_option('itw_ishome');
+			$debugmode = (get_option('itw_debugmode')) ? get_option('itw_debugmode') : false;
+			$is_home = (get_option('itw_ishome')) ? get_option('itw_ishome') : false;
 			
 			if ($date_check == false) {$date_check = 'now';  }
 			
@@ -493,7 +493,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			$debug .= "------------------------------------------------------------------------------------------------------------------------------------------\n";
 			
 			//check if page is blog page - only run
-			if ($is_home == true || ( $is_home == false && is_home())) {
+			if ($is_home == true || ( $is_home == false && (is_home() || is_category(get_option('itw_postcats'))))) {
 			//if (is_home()) {
 			
 				$ishomecheck = ($is_home ? "set" : "not set");
@@ -739,17 +739,19 @@ if (!class_exists("instagrate_to_wordpress")) {
 				// Check for download errors
 				if ( is_wp_error( $tmp ) ) {
 					$debug .= '------------------Download Error: '.$url.'-- '. Date( DATE_RFC822 ) . "\n";
+					$debug .= '------------------Download Error: '.$tmp->get_error_message().'-- '. Date( DATE_RFC822 ) . "\n";
 					@unlink( $file_array[ 'tmp_name' ] );
-					return $tmp;
+					$attach[0] = 0;
 				}
 	
 				$id = media_handle_sideload( $file_array, $postid );
 				// Check for handle sideload errors.
 			 
 				if ( is_wp_error( $id ) ) {
-					$debug .= '------------------media_handle_sideload Error: '.$url.'-- '. Date( DATE_RFC822 ) . "\n";
+					$debug .= '------------------media_handle_sideload Error: ' .$url. '-- '. Date( DATE_RFC822 ) . "\n";
+					$debug .= '------------------media_handle_sideload Error: ' .$id->get_error_message(). '-- '. Date( DATE_RFC822 ) . "\n";
 					@unlink( $file_array['tmp_name'] );
-					$attach[0] =  $id;
+					$attach[0] = 0;
 				} else {
 					
 				 	$attach[0] =  $id;
@@ -887,24 +889,26 @@ if (!class_exists("instagrate_to_wordpress")) {
 				
 				$debug  .= $attach[1];
 				
-				$attach_id = $attach[0];
+				if ($attach[0] != 0) {
+					$attach_id = $attach[0];
+					
+					$debug .= "--------------Attach Id: ".$attach_id.' -- '. Date( DATE_RFC822 ) . "\n";
+					
+					//get new shot image url from media attachment
+					$post_image = wp_get_attachment_url($attach_id);
+					
+					$debug .= "--------------Attach Post Image: ".$post_image.' -- '. Date( DATE_RFC822 ) . "\n";
+					
+					$image = '<img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' />';				
+					
+					//featured image settings
+					if ($imagefeat == 'featonly') {
+					
+						//featured only - only set as featured
+						$image = '';
 				
-				$debug .= "--------------Attach Id: ".$attach_id.' -- '. Date( DATE_RFC822 ) . "\n";
-				
-				//get new shot image url from media attachment
-				$post_image = wp_get_attachment_url($attach_id);
-				
-				$debug .= "--------------Attach Post Image: ".$post_image.' -- '. Date( DATE_RFC822 ) . "\n";
-				
-				$image = '<img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' />';				
-				
-				//featured image settings
-				if ($imagefeat == 'featonly') {
-				
-					//featured only - only set as featured
-					$image = '';
-			
-				}
+					}
+			   } else $image = '<img src="'.$post_image.'" '.$imageclass.' alt="'.$post_title.'" '.$imagesize.' />';
 				
 			}
 			
@@ -1540,7 +1544,7 @@ logout/" width="0" height="0"></iframe>
 												$select_value = $posttype;
 												
 												foreach ( $posttypes as $pt ) :
-							
+													if (esc_attr( $pt->name ) == 'attachment') continue;
 													$selected = '';
 								
 													if($select_value != '') {
