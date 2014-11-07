@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.2.2
+Version: 1.2.3
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.2.2');
+define( 'ITW_PLUGIN_VERSION', '1.2.3');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -45,7 +45,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 			
 			//cache fix
 			session_cache_limiter( FALSE );
-			session_start(); 
+            if ( !session_id() ) session_start();
 						
 			//settings menu
 			add_action('admin_menu',get_class()  . '::register_settings_menu' );
@@ -434,7 +434,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		
 		}
 		
-		function instagrate_id_exists($instagrate_id) {
+		public static function instagrate_id_exists($instagrate_id) {
 		
 			global $wpdb;
 			$result = false;
@@ -715,7 +715,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		}
 		
 		/* Attach an image to the media library */
-		function attach_image($url, $postid) {
+		public static function attach_image($url, $postid) {
 		
 			require_once(ABSPATH . "wp-admin" . '/includes/image.php');
 			require_once(ABSPATH . "wp-admin" . '/includes/file.php');
@@ -773,7 +773,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 		}
 
 		/* Remove the querystring from a URL */
-		function strip_querysting($url) {
+		public static function strip_querysting($url) {
 
 			if (strpos($url,'?') !== false) {
 				$url = substr($url,0,strpos($url, '?'));
@@ -1195,10 +1195,11 @@ if (!class_exists("instagrate_to_wordpress")) {
 										$defaulttitle  = $_POST['itw_defaulttitle'];
 										update_option('itw_defaulttitle', $defaulttitle);
 										
-										$is_home  = $_POST['itw_ishome'];
-										update_option('itw_ishome', $is_home);
-										
-											
+										if (isset($_POST['itw_ishome'])) {
+                                            update_option('itw_ishome', $_POST['itw_ishome']);
+                                        }
+
+
 										?>
 										
 										<div class="itw_saved"><p><?php _e('Plugin settings saved!' ); ?></p></div>
@@ -1229,7 +1230,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 										$poststatus = get_option('itw_poststatus');
 										$posttype = get_option('itw_posttype');
 										$defaulttitle = get_option('itw_defaulttitle');
-										$is_home = get_option('itw_ishome');
+										$is_home = get_option('itw_ishome', false);
 										
 										
 									}
@@ -1575,19 +1576,19 @@ logout/" width="0" height="0"></iframe>
 										<h4>Advanced Settings</h4>
 									
 										<p class="itw_info">This is an advanced setting for sites using themes that do not have a separate page dedicated to posts. If in doubt do not switch on.</p>
-										<p><input type="checkbox" name="itw_ishome" <?php if ($is_home == true) { echo 'checked="checked"'; } ?> /> Check this to bypass the is_home() check when the plugin auto posts. </p>
+										<p><input type="checkbox" name="itw_ishome" <?php if ( isset( $is_home ) && $is_home == true) { echo 'checked="checked"'; } ?> /> Check this to bypass the is_home() check when the plugin auto posts. </p>
 										  
 										<h4>Plugin Link</h4>
 									
 										<p class="itw_info">This will place a small link for the plugin at the bottom of the post content, eg. <small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small> </p>
-										<p><input type="checkbox" name="itw_pluginlink" <?php if ($pluginlink ==true) { echo 'checked="checked"'; } ?> /> Show plugin link 
+										<p><input type="checkbox" name="itw_pluginlink" <?php if ($pluginlink == true) { echo 'checked="checked"'; } ?> /> Show plugin link
 										 </p>
 										
 										<h4>Debug Mode</h4>
 									
 										<p class="itw_info">This is off by default and should only be turned on if you have a problem with the plugin and have contacted us via the <a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum.</a>
 										We will ask you to send us the debug.txt file it creates in the plugin folder.</p>
-										<p><input type="checkbox" name="itw_debugmode" <?php if ($debugmode ==true) { echo 'checked="checked"'; } ?> /> Enable Debug Mode 
+										<p><input type="checkbox" name="itw_debugmode" <?php if ($debugmode == true) { echo 'checked="checked"'; } ?> /> Enable Debug Mode
 										 </p>
 										
 										<p class="submit">
@@ -1687,10 +1688,9 @@ logout/" width="0" height="0"></iframe>
 					<div id="links">
 						<b>Instagrate to WordPress</b> | We hope you enjoy the plugin | 
 						<a href="http://www.instagrate.co.uk/">Instagrate Pro - more features</a> |
-						<a href="http://www.polevaultweb.com/support/forum/instagrate-to-wordpress-plugin/">Support Forum</a> |
+						<a href="http://support.polevaultweb.com/discussions/instagrate-to-wordpress">Support Forum</a> |
 						<a title="Donate" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=R6BY3QARRQP2Q">Donate</a> |
 						<a title="Follow on Twitter" href="http://twitter.com/#!/polevaultweb">@polevaultweb</a> |
-						<a href="http://www.polevaultweb.com/plugins/instagrate-to-wordpress/">Plugin Site</a> |
 						<a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/" title="Rate the Plugin on WordPress">Rate the Plugin ★★★★★</a> |
 						<a href="http://led24.de/iconset/">16px Icons</a>
 					</div>
