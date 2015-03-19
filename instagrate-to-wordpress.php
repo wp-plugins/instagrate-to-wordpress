@@ -964,9 +964,7 @@ if (!class_exists("instagrate_to_wordpress")) {
 
 				$post_body  = $post_body.' <br/><small>Posted by <a href="http://wordpress.org/extend/plugins/instagrate-to-wordpress/">Instagrate to WordPress</a></small>';	
 			}
-			
-			$post_body = "<!-- This post is created by Instagrate to WordPress, a WordPress Plugin by polevaultweb.com - http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ -->".$post_body;
-			
+
 			$debug .= "--------------Post Content: ".$post_body.' -- '. Date( DATE_RFC822 ) . "\n";		
 			$debug .= "--------------Post Format: ".$postformat.' -- '. Date( DATE_RFC822 ) . "\n";	
 				
