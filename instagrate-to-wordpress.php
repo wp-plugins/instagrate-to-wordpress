@@ -4,7 +4,7 @@ Plugin Name: Instagrate to WordPress
 Plugin URI: http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ 
 Description: Plugin for automatic posting of Instagram images into a WordPress blog.
 Author: polevaultweb 
-Version: 1.2.4
+Version: 1.2.5
 Author URI: http://www.polevaultweb.com/
 
 Copyright 2012  polevaultweb  (email : info@polevaultweb.com)
@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 //plugin version
-define( 'ITW_PLUGIN_VERSION', '1.2.4');
+define( 'ITW_PLUGIN_VERSION', '1.2.5');
 define( 'ITW_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ITW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITW_PLUGIN_BASE', plugin_basename( __FILE__ ) );
@@ -176,10 +176,24 @@ if (!class_exists("instagrate_to_wordpress")) {
 				update_option('itw_ishome', false);
 			
 			}
+			
+			if ( version_compare( $current_version, '1.2.5', '<' ) ) {
+				// remove old links in posts
+				self::remove_links();
+			}
+
 
 			//update the database version
 			update_option( 'itw_version', ITW_PLUGIN_VERSION );
 		
+		}
+
+		public static function remove_links() {
+			global $wpdb;
+			$link = '<!-- This post is created by Instagrate to WordPress, a WordPress Plugin by polevaultweb.com - http://www.polevaultweb.com/plugins/instagrate-to-wordpress/ -->';
+			$post_content_sql = "UPDATE $wpdb->posts SET `post_content` = replace(post_content, '{$link}', '');";
+			// run the sql
+			$wpdb->query( $post_content_sql );
 		}
 		
 		/* Register custom uninstall function */
